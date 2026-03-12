@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Let Me Prompt That</title>
+  <meta name="description" content="When a colleague asks you something they could've just asked AI. Send them this link instead.">
+  <meta property="og:title" content="Let Me Prompt That">
+  <meta property="og:description" content="When a colleague asks you something they could've just asked AI.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Let Me Prompt That</h1>
+      <p class="subtitle">Colleague asked you something they could've just asked AI?<br>Send them this link instead.</p>
+    </header>
+
+    <main>
+      <div class="input-group">
+        <label for="question">What did they ask you?</label>
+        <textarea id="question" placeholder="how to center a div in CSS" rows="3" autofocus></textarea>
+      </div>
+
+      <div class="ai-options">
+        <label class="ai-options-label">Redirect them to:</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="ai" value="p" checked>
+            <span class="radio-text">Perplexity <span class="radio-hint">(auto-answers)</span></span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="ai" value="g">
+            <span class="radio-text">ChatGPT <span class="radio-hint">(pre-fills prompt)</span></span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="ai" value="c">
+            <span class="radio-text">Claude <span class="radio-hint">(copies to clipboard)</span></span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="ai" value="x">
+            <span class="radio-text">None <span class="radio-hint">(just copy the question)</span></span>
+          </label>
+        </div>
+      </div>
+
+      <button id="generate" class="btn-generate">Generate Link</button>
+
+      <div id="result" class="result hidden">
+        <div class="result-url" id="result-url"></div>
+        <button id="copy-btn" class="btn-copy">Copy Link</button>
+        <span id="copy-feedback" class="copy-feedback"></span>
+      </div>
+    </main>
+
+    <footer>
+      <p>Inspired by <a href="https://lmgtfy.app" target="_blank" rel="noopener">LMGTFY</a>, but for the AI age.</p>
+    </footer>
+  </div>
+
+  <script src="./shared/cipher.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Ignore everything
+*
+
+# Except the LMPT project
+!LetMePromptThat/
+!LetMePromptThat/**
+!share/
+!share/**
+!shared/
+!shared/**
+!.gitignore
+
+# OS junk
+.DS_Store
+
+# Build artifacts
+_site/
