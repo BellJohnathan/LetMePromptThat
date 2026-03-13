@@ -19,7 +19,7 @@ export default {
     }
 
     // For any encoded path, serve index.html with OG tags injected
-    const asset = await env.ASSETS.fetch(new Request(new URL('/index.html', url.origin), request));
+    const asset = await env.ASSETS.fetch(new Request(new URL('/index.html', url.origin)));
     let html = await asset.text();
 
     // Replace existing OG tags to ensure they're correct

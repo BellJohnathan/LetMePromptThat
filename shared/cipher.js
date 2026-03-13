@@ -100,3 +100,10 @@ function parseShareURL(_pathname, hash) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { encodeQuery, decodeQuery, slugHash, buildShareURL, parseShareURL };
 }
+if (typeof window !== 'undefined') {
+  window.encodeQuery = encodeQuery;
+  window.decodeQuery = decodeQuery;
+  window.slugHash = slugHash;
+  window.buildShareURL = buildShareURL;
+  window.parseShareURL = parseShareURL;
+}
