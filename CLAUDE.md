@@ -16,7 +16,7 @@ Two static sites + shared encoding logic:
 ├── CLAUDE.md                 # This file
 ├── package.json              # Test scripts and dev dependencies
 ├── playwright.config.js      # E2E test configuration
-├── .github/workflows/test.yml # CI: unit + e2e tests
+├── .github/workflows/test.yml # CI: unit + e2e + post-deploy smoke tests
 ├── shared/
 │   └── cipher.js             # Canonical cipher module (source of truth)
 ├── LetMePromptThat/          # Creator site
@@ -34,6 +34,7 @@ Two static sites + shared encoding logic:
 └── tests/
     ├── cipher.test.js        # Unit tests (Node.js built-in test runner)
     ├── sync-check.js         # Verifies all cipher.js copies match
+    ├── smoke.js              # Production smoke tests (HTTP-only, no browser)
     └── e2e/
         ├── share-page.spec.js    # Playwright tests for share site
         └── creator-page.spec.js  # Playwright tests for creator site
@@ -67,5 +68,6 @@ Both sites deploy to Cloudflare Pages. The share site uses `_worker.js` to injec
 npm test          # Unit tests (cipher roundtrips, slugHash, buildShareURL, parseShareURL)
 npm run test:sync # Verify all cipher.js copies are identical
 npm run test:e2e  # Playwright e2e tests (share page + creator page)
-npm run test:all  # Run all tests
+npm run test:smoke # Production smoke tests (hits live lmpt.io + letmeprompthat.com)
+npm run test:all  # Run all local tests
 ```

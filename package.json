@@ -5,6 +5,7 @@
     "test": "node --test tests/cipher.test.js",
     "test:sync": "node tests/sync-check.js",
     "test:e2e": "npx playwright test",
+    "test:smoke": "node tests/smoke.js",
     "test:all": "npm test && npm run test:sync && npm run test:e2e"
   },
   "devDependencies": {
