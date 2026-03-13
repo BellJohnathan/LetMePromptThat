@@ -7,7 +7,7 @@
 
   if (!query) {
     document.querySelector('.chat-body').innerHTML =
-      '<p style="text-align:center;color:#888;padding:3rem 1rem;">Nothing to see here. Go to <a href="https://letmeprompthat.com" style="color:#7c6ef0;">letmeprompthat.com</a> to create a link.</p>';
+      '<p style="text-align:center;color:#9e9590;padding:3rem 1rem;">Nothing to see here. Go to <a href="https://letmeprompthat.com" style="color:#e8a838;">letmeprompthat.com</a> to create a link.</p>';
     return;
   }
 
@@ -15,6 +15,7 @@
   const typedText = document.getElementById('typed-text');
   const cursor = document.getElementById('cursor');
   const sendBtn = document.getElementById('send-btn');
+  const thinkingDots = document.getElementById('thinking-dots');
   const snarkyMessage = document.getElementById('snarky-message');
   const redirectNotice = document.getElementById('redirect-notice');
   const redirectText = document.getElementById('redirect-text');
@@ -57,27 +58,43 @@
     if (charIndex < query.length) {
       typedText.textContent += query[charIndex];
       charIndex++;
-      setTimeout(typeNextChar, typingSpeed + Math.random() * 30);
+
+      // Extra pause on word boundaries for gravitas
+      const extraDelay = query[charIndex - 1] === ' ' ? 80 + Math.random() * 40 : 0;
+      setTimeout(typeNextChar, typingSpeed + Math.random() * 30 + extraDelay);
     } else {
       onTypingDone();
     }
   }
 
   function onTypingDone() {
-    // Activate send button
-    sendBtn.classList.add('active');
-
-    // Click send after a brief pause
+    // Activate send button after a pause
     setTimeout(() => {
-      cursor.classList.add('hidden');
-      sendBtn.style.transform = 'scale(0.9)';
-      setTimeout(() => {
-        sendBtn.style.transform = '';
-      }, 100);
+      sendBtn.classList.add('active');
 
-      // Dramatic pause, then snarky message
-      setTimeout(showSnarkyMessage, 1200);
-    }, 600);
+      // Press send after another pause
+      setTimeout(() => {
+        cursor.classList.add('hidden');
+        sendBtn.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          sendBtn.style.transform = '';
+        }, 100);
+
+        // Show thinking dots
+        setTimeout(() => {
+          thinkingDots.classList.remove('hidden');
+
+          // Fade out thinking dots, then show snarky message
+          setTimeout(() => {
+            thinkingDots.classList.add('fade-out');
+            setTimeout(() => {
+              thinkingDots.classList.add('hidden');
+              showSnarkyMessage();
+            }, 400);
+          }, 1600);
+        }, 300);
+      }, 800);
+    }, 800);
   }
 
   function showSnarkyMessage() {
@@ -154,6 +171,6 @@
     setTimeout(() => toast.classList.add('hidden'), 4000);
   }
 
-  // Start the animation after a brief initial delay
-  setTimeout(typeNextChar, 800);
+  // Start the animation after a longer initial delay for anticipation
+  setTimeout(typeNextChar, 1200);
 })();
