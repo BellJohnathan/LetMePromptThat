@@ -61,10 +61,12 @@ async function shareTests() {
     assert(ct.includes('text/html'), `Expected text/html, got ${ct}`);
   });
 
-  await test('slug path with hash fragment still serves page', async () => {
-    // Browsers strip the hash before sending, so the server just sees /test
+  await test('slug path returns non-empty HTML with page structure', async () => {
     const res = await fetch(`${SHARE_URL}/test`);
-    assert(res.ok, `Expected 200, got ${res.status}`);
+    const html = await res.text();
+    assert(html.length > 0, 'Response body is empty');
+    assert(html.includes('id="typed-text"'), 'Missing #typed-text element in slug response');
+    assert(html.includes('cipher.js'), 'Missing cipher.js script in slug response');
   });
 
   await test('animation.js is accessible', async () => {
