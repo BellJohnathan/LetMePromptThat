@@ -10,8 +10,24 @@
 !shared/**
 !.gitignore
 
+# Project config
+!CLAUDE.md
+!package.json
+!package-lock.json
+!playwright.config.js
+
+# Tests
+!tests/
+!tests/**
+
+# CI
+!.github/
+!.github/**
+
 # OS junk
 .DS_Store
 
 # Build artifacts
 _site/
+test-results/
+node_modules/
