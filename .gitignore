@@ -12,6 +12,7 @@
 
 # Project config
 !CLAUDE.md
+!README.md
 !package.json
 !package-lock.json
 !playwright.config.js
