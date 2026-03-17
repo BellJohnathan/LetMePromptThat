@@ -84,6 +84,42 @@ test.describe('Creator page', () => {
   });
 });
 
+test.describe('Creator page placeholder animation', () => {
+  test('placeholder text appears and changes over time', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    const placeholder = page.locator('#placeholder-anim');
+
+    // Wait for initial typing to start
+    await page.waitForFunction(
+      () => document.getElementById('placeholder-anim').textContent.length > 0,
+      null,
+      { timeout: 5000 }
+    );
+
+    const firstText = await placeholder.textContent();
+    expect(firstText.length).toBeGreaterThan(0);
+  });
+
+  test('placeholder stops when user types', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Wait for placeholder to start
+    await page.waitForFunction(
+      () => document.getElementById('placeholder-anim').textContent.length > 0,
+      null,
+      { timeout: 5000 }
+    );
+
+    // Type in textarea
+    await page.fill('#question', 'hello');
+
+    // Placeholder should be hidden
+    const placeholder = page.locator('#placeholder-anim');
+    await expect(placeholder).toHaveClass(/hidden/);
+  });
+});
+
 test.describe('Creator page (mobile viewport)', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 

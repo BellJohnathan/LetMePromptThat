@@ -123,6 +123,10 @@ main {
   margin-bottom: 0.5rem;
 }
 
+.textarea-wrap {
+  position: relative;
+}
+
 textarea {
   width: 100%;
   background: var(--surface);
@@ -144,6 +148,39 @@ textarea:focus {
 
 textarea::placeholder {
   color: var(--text-dim);
+}
+
+.placeholder-anim {
+  position: absolute;
+  top: 0.85rem;
+  left: 1rem;
+  right: 1rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+  pointer-events: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.placeholder-anim::after {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: var(--text-dim);
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+  margin-left: 1px;
+}
+
+.placeholder-anim.hidden {
+  display: none;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
 }
 
 .ai-options {
