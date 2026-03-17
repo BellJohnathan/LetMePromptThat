@@ -12,16 +12,36 @@
   }
 
   // Elements
+  const inputBar = document.getElementById('input-bar');
+  const inputPreview = document.getElementById('input-preview');
+  const inputCursor = document.getElementById('input-cursor');
+  const sendBtn = document.getElementById('send-btn');
+  const userMessage = document.getElementById('user-message');
   const typedText = document.getElementById('typed-text');
   const cursor = document.getElementById('cursor');
-  const sendBtn = document.getElementById('send-btn');
+  const aiMessage = document.getElementById('ai-message');
   const thinkingDots = document.getElementById('thinking-dots');
   const snarkyMessage = document.getElementById('snarky-message');
+  const snarkyTitle = document.getElementById('snarky-title');
+  const snarkySubtitle = document.getElementById('snarky-subtitle');
   const redirectNotice = document.getElementById('redirect-notice');
   const redirectText = document.getElementById('redirect-text');
   const cancelRedirect = document.getElementById('cancel-redirect');
   const aiButtons = document.getElementById('ai-buttons');
   const toast = document.getElementById('toast');
+  const headerStatus = document.getElementById('header-status');
+
+  // Punchline variations — randomly selected each page load
+  const punchlines = [
+    { title: 'Was that so hard?', subtitle: 'Next time, just prompt it yourself.' },
+    { title: 'You could\u2019ve just asked AI.', subtitle: 'But sure, let\u2019s bother a human.' },
+    { title: 'AI can do this in 2 seconds.', subtitle: 'Just saying.' },
+    { title: 'The future is now, old man.', subtitle: 'And the future has a search bar.' },
+    { title: 'This is literally what AI is for.', subtitle: 'You\u2019re welcome.' },
+    { title: 'I\u2019m not even real and I found the answer.', subtitle: 'Think about that.' },
+  ];
+
+  const punchline = punchlines[Math.floor(Math.random() * punchlines.length)];
 
   // Build redirect URLs
   const encodedQuery = encodeURIComponent(query).replace(/%20/g, '+');
@@ -50,13 +70,13 @@
     copyQuestion('Question copied to clipboard');
   });
 
-  // ── Typewriter animation ──
+  // ── Phase 1: Typewriter in the input bar ──
   let charIndex = 0;
   const typingSpeed = 55; // ms per character
 
   function typeNextChar() {
     if (charIndex < query.length) {
-      typedText.textContent += query[charIndex];
+      inputPreview.textContent += query[charIndex];
       charIndex++;
 
       // Extra pause on word boundaries for gravitas
@@ -67,41 +87,64 @@
     }
   }
 
+  // ── Phase 2: Send — input bar fades, user bubble appears ──
   function onTypingDone() {
-    // Activate send button after a pause
     setTimeout(() => {
       sendBtn.classList.add('active');
 
-      // Press send after another pause
       setTimeout(() => {
-        cursor.classList.add('hidden');
-        sendBtn.style.transform = 'scale(0.9)';
-        setTimeout(() => {
-          sendBtn.style.transform = '';
-        }, 100);
+        // Press send
+        sendBtn.style.transform = 'scale(0.88)';
+        setTimeout(() => { sendBtn.style.transform = ''; }, 120);
 
-        // Show thinking dots
-        setTimeout(() => {
-          thinkingDots.classList.remove('hidden');
+        // Hide cursor in input bar
+        inputCursor.classList.add('hidden');
 
-          // Fade out thinking dots, then show snarky message
-          setTimeout(() => {
-            thinkingDots.classList.add('fade-out');
-            setTimeout(() => {
-              thinkingDots.classList.add('hidden');
-              showSnarkyMessage();
-            }, 400);
-          }, 1600);
+        // After a beat, transition: input bar fades, user bubble appears
+        setTimeout(() => {
+          inputBar.classList.add('sent');
+
+          // Show user message bubble with the full text
+          typedText.textContent = query;
+          cursor.classList.add('hidden');
+          userMessage.classList.remove('hidden');
+
+          // Phase 3: AI responds
+          setTimeout(showAIResponse, 600);
         }, 300);
-      }, 800);
-    }, 800);
+      }, 600);
+    }, 700);
   }
 
-  function showSnarkyMessage() {
-    snarkyMessage.classList.remove('hidden');
+  // ── Phase 3: AI thinking → snarky reveal ──
+  function showAIResponse() {
+    // Update header status to "typing..."
+    headerStatus.textContent = 'typing\u2026';
+    headerStatus.style.color = 'var(--accent)';
 
-    // After 3 seconds, do the redirect action
-    setTimeout(doRedirect, 3000);
+    aiMessage.classList.remove('hidden');
+
+    // Thinking dots are already visible in the AI bubble — let them run for suspense
+    setTimeout(() => {
+      thinkingDots.classList.add('fade-out');
+
+      setTimeout(() => {
+        thinkingDots.classList.add('hidden');
+
+        // Reset header status
+        headerStatus.textContent = 'Online';
+        headerStatus.style.color = '';
+
+        // Reveal punchline with bubble flash
+        snarkyTitle.textContent = punchline.title;
+        snarkySubtitle.textContent = punchline.subtitle;
+        snarkyMessage.classList.remove('hidden');
+        aiMessage.querySelector('.message-bubble-ai').classList.add('reveal');
+
+        // After punchline lands, do the redirect action
+        setTimeout(doRedirect, 3000);
+      }, 400);
+    }, 2400);
   }
 
   let redirectTimer = null;
