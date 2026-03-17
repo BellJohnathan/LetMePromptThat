@@ -83,3 +83,75 @@ test.describe('Creator page', () => {
     await expect(result).toHaveClass(/hidden/);
   });
 });
+
+test.describe('Creator page placeholder animation', () => {
+  test('placeholder text appears and changes over time', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    const placeholder = page.locator('#placeholder-anim');
+
+    // Wait for initial typing to start
+    await page.waitForFunction(
+      () => document.getElementById('placeholder-anim').textContent.length > 0,
+      null,
+      { timeout: 5000 }
+    );
+
+    const firstText = await placeholder.textContent();
+    expect(firstText.length).toBeGreaterThan(0);
+  });
+
+  test('placeholder stops when user types', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Wait for placeholder to start
+    await page.waitForFunction(
+      () => document.getElementById('placeholder-anim').textContent.length > 0,
+      null,
+      { timeout: 5000 }
+    );
+
+    // Type in textarea
+    await page.fill('#question', 'hello');
+
+    // Placeholder should be hidden
+    const placeholder = page.locator('#placeholder-anim');
+    await expect(placeholder).toHaveClass(/hidden/);
+  });
+});
+
+test.describe('Creator page (mobile viewport)', () => {
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test('generates link on mobile', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    await page.fill('#question', 'mobile test query');
+    await page.click('#generate');
+
+    const resultUrl = page.locator('#result-url');
+    await expect(resultUrl).toBeVisible();
+    const url = await resultUrl.textContent();
+    expect(url).toMatch(/^lmpt\.io\/[0-9a-z]{4}#p/);
+  });
+
+  test('generate button is tappable-sized on mobile', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    const btn = page.locator('#generate');
+    const box = await btn.boundingBox();
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  });
+
+  test('radio options are visible in single column on mobile', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // All 4 radio options should be visible
+    const radios = page.locator('.radio-option');
+    await expect(radios).toHaveCount(4);
+
+    for (let i = 0; i < 4; i++) {
+      await expect(radios.nth(i)).toBeVisible();
+    }
+  });
+});

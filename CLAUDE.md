@@ -21,14 +21,17 @@ Two static sites + shared encoding logic:
 │   └── cipher.js             # Canonical cipher module (source of truth)
 ├── LetMePromptThat/          # Creator site
 │   ├── index.html
-│   ├── app.js
+│   ├── app.js                # Link generation + rotating placeholder animation
 │   ├── styles.css
+│   ├── sitemap.xml           # Single-page sitemap for SEO
+│   ├── robots.txt            # Crawl directives
 │   └── shared/cipher.js      # Copy of shared/cipher.js
 ├── share/                    # Share/redirect site
 │   ├── index.html
-│   ├── animation.js
+│   ├── animation.js          # Chat bubble animation + punchline system
 │   ├── styles.css
 │   ├── _worker.js            # Cloudflare Worker (OG tags + routing)
+│   ├── robots.txt            # Disallows crawling share links
 │   ├── serve.json            # Local dev SPA routing config
 │   └── shared/cipher.js      # Copy of shared/cipher.js
 └── tests/

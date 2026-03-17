@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /$
+Disallow: /
+
+# Share links are individual user content and should not be indexed.
+# The Cloudflare Worker also injects noindex meta tags on share URLs.
