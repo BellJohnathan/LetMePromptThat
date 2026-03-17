@@ -33,7 +33,12 @@ test.describe('Share page', () => {
   test('no console errors (cipher.js loads successfully)', async ({ page }) => {
     const errors = [];
     page.on('console', msg => {
-      if (msg.type() === 'error') errors.push(msg.text());
+      if (msg.type() === 'error') {
+        const text = msg.text();
+        // Ignore Cloudflare analytics errors in local dev (CORS + network failures)
+        if (text.includes('cloudflareinsights') || text.includes('cdn-cgi/rum') || text.includes('net::ERR_FAILED')) return;
+        errors.push(text);
+      }
     });
     page.on('pageerror', err => errors.push(err.message));
 
@@ -103,6 +108,14 @@ test.describe('Share page', () => {
     // Input bar should have the 'sent' class
     const inputBar = page.locator('#input-bar');
     await expect(inputBar).toHaveClass(/sent/);
+  });
+});
+
+test.describe('Share page analytics', () => {
+  test('Cloudflare analytics beacon is present', async ({ page }) => {
+    await page.goto(`${SHARE_BASE}/`);
+    const beacon = page.locator('script[src*="cloudflareinsights"]');
+    await expect(beacon).toHaveCount(1);
   });
 });
 

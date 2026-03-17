@@ -84,6 +84,14 @@ test.describe('Creator page', () => {
   });
 });
 
+test.describe('Creator page analytics', () => {
+  test('Cloudflare analytics beacon is present', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    const beacon = page.locator('script[src*="cloudflareinsights"]');
+    await expect(beacon).toHaveCount(1);
+  });
+});
+
 test.describe('Creator page placeholder animation', () => {
   test('placeholder text appears and changes over time', async ({ page }) => {
     await page.goto(CREATOR_BASE);
