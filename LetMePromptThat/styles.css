@@ -423,6 +423,11 @@ footer a:hover {
 }
 
 @media (max-width: 480px) {
+  body {
+    padding: 1.25rem 0.75rem;
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
   h1 {
     font-size: 2rem;
   }
@@ -431,8 +436,23 @@ footer a:hover {
     font-size: 0.95rem;
   }
 
+  /* Ensure textarea doesn't zoom on iOS (font-size >= 16px) */
+  textarea {
+    font-size: 1rem;
+  }
+
   .radio-group {
     grid-template-columns: 1fr;
+  }
+
+  .radio-option {
+    padding: 0.55rem 0.7rem;
+    min-height: 44px;
+  }
+
+  .btn-generate {
+    min-height: 48px;
+    font-size: 1rem;
   }
 
   .result {
@@ -441,6 +461,14 @@ footer a:hover {
   }
 
   .btn-copy {
+    text-align: center;
+    min-height: 44px;
+    width: 100%;
+    border-radius: 10px;
+  }
+
+  .result-url {
+    font-size: 0.8rem;
     text-align: center;
   }
 
@@ -459,5 +487,16 @@ footer a:hover {
 
   .radio-option:nth-child(even) .tooltip-wrap:hover .tooltip {
     transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  footer {
+    margin-top: 2rem;
+  }
+}
+
+/* Hide tooltips on touch devices — they require hover */
+@media (hover: none) {
+  .tooltip {
+    display: none;
   }
 }

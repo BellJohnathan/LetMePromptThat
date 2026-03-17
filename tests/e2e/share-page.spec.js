@@ -105,3 +105,28 @@ test.describe('Share page', () => {
     await expect(inputBar).toHaveClass(/sent/);
   });
 });
+
+test.describe('Share page (mobile viewport)', () => {
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test('animation works on mobile', async ({ page }) => {
+    const hash = buildHash('mobile test question', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // User bubble appears with typed text
+    const typedText = page.locator('#typed-text');
+    await expect(typedText).toHaveText('mobile test question', { timeout: 15000 });
+
+    // Snarky message appears
+    const snarkyMessage = page.locator('#snarky-message');
+    await expect(snarkyMessage).toBeVisible({ timeout: 25000 });
+
+    // AI buttons are visible and tappable-sized (min 44px height)
+    const buttons = page.locator('#ai-buttons');
+    await expect(buttons).toBeVisible({ timeout: 30000 });
+
+    const firstBtn = page.locator('.ai-btn').first();
+    const box = await firstBtn.boundingBox();
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  });
+});
