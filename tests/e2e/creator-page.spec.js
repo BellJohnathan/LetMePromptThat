@@ -25,7 +25,16 @@ test.describe('Creator page', () => {
     await page.fill('#question', 'test query');
 
     for (const code of ['g', 'c', 'x', 'p']) {
+      // Expand picker if collapsed (after first generate, it auto-collapses)
+      const toggle = page.locator('.collapse-toggle');
+      if (await toggle.isVisible()) {
+        await toggle.click();
+        // Wait for expansion
+        await expect(page.locator('.radio-option:visible')).toHaveCount(7, { timeout: 2000 });
+      }
       await page.check(`input[name="ai"][value="${code}"]`);
+      // Wait for auto-collapse to finish before next iteration
+      await page.waitForTimeout(300);
       await page.click('#generate');
 
       const url = await page.locator('#result-url').textContent();
@@ -41,6 +50,9 @@ test.describe('Creator page', () => {
     const resultUrl = page.locator('#result-url');
     const initialUrl = await resultUrl.textContent();
     expect(initialUrl).toContain('#p');
+
+    // Expand picker (collapsed after generate)
+    await page.click('.collapse-toggle');
 
     // Switch to ChatGPT without clicking generate
     await page.check('input[name="ai"][value="g"]');
@@ -146,12 +158,143 @@ test.describe('Creator page (mobile viewport)', () => {
   test('radio options are visible in single column on mobile', async ({ page }) => {
     await page.goto(CREATOR_BASE);
 
-    // All 4 radio options should be visible
+    // All radio options should be visible
     const radios = page.locator('.radio-option');
-    await expect(radios).toHaveCount(4);
+    await expect(radios).toHaveCount(7);
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 7; i++) {
       await expect(radios.nth(i)).toBeVisible();
     }
+  });
+});
+
+test.describe('Creator page preview button', () => {
+  test('preview button is visible after generating link', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    await page.fill('#question', 'preview test');
+    await page.click('#generate');
+
+    const previewBtn = page.locator('#preview-btn');
+    await expect(previewBtn).toBeVisible();
+  });
+
+  test('preview button opens link in new tab', async ({ page, context }) => {
+    await page.goto(CREATOR_BASE);
+    await page.fill('#question', 'preview test');
+    await page.click('#generate');
+
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      page.click('#preview-btn'),
+    ]);
+
+    expect(newPage.url()).toContain('lmpt.io');
+  });
+});
+
+test.describe('Creator page localStorage persistence', () => {
+  test('remembers selected AI on reload', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Select ChatGPT
+    await page.check('input[name="ai"][value="g"]');
+    await page.fill('#question', 'test query');
+    await page.click('#generate');
+
+    // Reload
+    await page.reload();
+
+    // ChatGPT should be pre-selected
+    const checked = await page.locator('input[name="ai"][value="g"]').isChecked();
+    expect(checked).toBe(true);
+  });
+
+  test('shows collapsed state on reload with saved preference', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Select ChatGPT and generate
+    await page.check('input[name="ai"][value="g"]');
+    await page.fill('#question', 'test');
+    await page.click('#generate');
+
+    await page.reload();
+
+    // Only 1 radio option should be visible (collapsed)
+    const visibleOptions = page.locator('.radio-option:visible');
+    await expect(visibleOptions).toHaveCount(1);
+  });
+
+  test('Change button expands all options', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Select ChatGPT and generate to save preference
+    await page.check('input[name="ai"][value="g"]');
+    await page.fill('#question', 'test');
+    await page.click('#generate');
+
+    await page.reload();
+
+    // Click Change toggle
+    await page.click('.collapse-toggle');
+
+    // All options should be visible now
+    const visibleOptions = page.locator('.radio-option:visible');
+    const count = await visibleOptions.count();
+    expect(count).toBeGreaterThanOrEqual(7);
+  });
+
+  test('can re-collapse after expanding', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Select ChatGPT and generate to save preference
+    await page.check('input[name="ai"][value="g"]');
+    await page.fill('#question', 'test');
+    await page.click('#generate');
+
+    await page.reload();
+
+    // Expand
+    await page.click('.collapse-toggle');
+    const expandedCount = await page.locator('.radio-option:visible').count();
+    expect(expandedCount).toBeGreaterThanOrEqual(7);
+
+    // Re-collapse
+    await page.click('.collapse-toggle');
+    const collapsedCount = await page.locator('.radio-option:visible').count();
+    expect(collapsedCount).toBe(1);
+  });
+
+  test('auto-collapses when selecting a different AI', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Select ChatGPT and generate to save preference
+    await page.check('input[name="ai"][value="g"]');
+    await page.fill('#question', 'test');
+    await page.click('#generate');
+
+    await page.reload();
+
+    // Expand
+    await page.click('.collapse-toggle');
+    await expect(page.locator('.radio-option:visible')).toHaveCount(7);
+
+    // Pick a new AI
+    await page.check('input[name="ai"][value="c"]');
+
+    // Wait for auto-collapse (200ms delay)
+    await page.waitForTimeout(400);
+    const collapsedCount = await page.locator('.radio-option:visible').count();
+    expect(collapsedCount).toBe(1);
+  });
+
+  test('first visit shows all options (no localStorage)', async ({ page, context }) => {
+    // Clear localStorage
+    await page.goto(CREATOR_BASE);
+    await page.evaluate(() => localStorage.removeItem('lmpt-ai'));
+    await page.reload();
+
+    // All options visible
+    const visibleOptions = page.locator('.radio-option:visible');
+    await expect(visibleOptions).toHaveCount(7);
   });
 });

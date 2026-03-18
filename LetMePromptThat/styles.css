@@ -201,17 +201,17 @@ textarea::placeholder {
 
 .radio-group {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.4rem;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.65rem;
 }
 
 .radio-option {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   cursor: pointer;
-  padding: 0.45rem 0.6rem;
-  border-radius: 10px;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   position: relative;
@@ -247,8 +247,13 @@ textarea::placeholder {
 
 .radio-name {
   font-weight: 500;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   flex: 1;
+}
+
+/* Hide tooltips inside grid — they crowd 3-column cells */
+.radio-group .tooltip-wrap {
+  display: none;
 }
 
 /* Tooltip system */
@@ -370,7 +375,7 @@ textarea::placeholder {
   min-width: 0;
 }
 
-.btn-copy {
+.btn-copy, .btn-preview {
   width: 36px;
   height: 36px;
   padding: 0;
@@ -387,7 +392,7 @@ textarea::placeholder {
   transition: border-color 0.2s, background 0.2s, color 0.2s;
 }
 
-.btn-copy:hover {
+.btn-copy:hover, .btn-preview:hover {
   border-color: var(--accent);
   background: var(--surface-hover);
   color: var(--accent);
@@ -459,6 +464,47 @@ footer a:hover {
   text-decoration: underline;
 }
 
+.radio-option-none { grid-column: 1 / -1; }
+
+.radio-group.collapsed .radio-option { display: none; }
+.radio-group.collapsed .radio-option:has(input:checked) { display: flex; }
+.radio-group.collapsed { grid-template-columns: 1fr; }
+.radio-group.collapsed .radio-option:has(input:checked) {
+  box-shadow: none;
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.collapse-toggle {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.collapse-toggle:hover {
+  color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.collapse-toggle svg {
+  transition: transform 0.25s ease;
+}
+
+.radio-group:not(.collapsed) ~ .ai-options-label .collapse-toggle svg,
+.collapse-toggle.expanded svg {
+  transform: rotate(180deg);
+}
+
 @media (max-width: 480px) {
   body {
     padding: 1.25rem 0.75rem;
@@ -493,20 +539,20 @@ footer a:hover {
   }
 
   .result {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-copy {
-    text-align: center;
-    min-height: 44px;
-    width: 100%;
-    border-radius: 10px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .result-url {
+    width: 100%;
     font-size: 0.8rem;
     text-align: center;
+  }
+
+  .btn-copy, .btn-preview {
+    width: 36px;
+    min-height: 44px;
   }
 
   /* Center-align all tooltips in single column */
