@@ -48,7 +48,7 @@ Two static sites + shared encoding logic:
 Share links: `lmpt.io/{slug}#{aiCode}{encoded}`
 
 - **slug**: 4-char base-36 hash of the query (cosmetic, ignored on decode)
-- **aiCode**: `p` (Perplexity), `g` (ChatGPT), `c` (Claude), `x` (copy only)
+- **aiCode**: `p` (Perplexity), `g` (ChatGPT), `c` (Claude), `m` (Gemini), `k` (Grok), `l` (Le Chat), `x` (copy only)
 - **encoded**: `~` prefix = ROT13/ROT5 substitution; no prefix = base64
 
 ## Deployment

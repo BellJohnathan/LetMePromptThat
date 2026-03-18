@@ -77,7 +77,7 @@ describe('buildShareURL', () => {
   });
 
   it('uses specified aiCode', () => {
-    for (const code of ['p', 'g', 'c', 'x']) {
+    for (const code of ['p', 'g', 'c', 'x', 'm', 'k', 'l']) {
       const url = buildShareURL('test', code);
       assert.ok(url.includes(`#${code}`), `Expected aiCode ${code} in URL`);
     }
@@ -95,7 +95,7 @@ describe('parseShareURL', () => {
   });
 
   it('roundtrips all aiCodes', () => {
-    for (const code of ['p', 'g', 'c', 'x']) {
+    for (const code of ['p', 'g', 'c', 'x', 'm', 'k', 'l']) {
       const query = 'test query for ' + code;
       const url = buildShareURL(query, code);
       const hash = '#' + url.split('#')[1];
