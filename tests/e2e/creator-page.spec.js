@@ -298,3 +298,56 @@ test.describe('Creator page localStorage persistence', () => {
     await expect(visibleOptions).toHaveCount(7);
   });
 });
+
+test.describe('Creator page auto-expanding textarea', () => {
+  test('textarea has resize none', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    const resize = await page.locator('#question').evaluate(
+      (el) => getComputedStyle(el).resize
+    );
+    expect(resize).toBe('none');
+  });
+
+  test('typing multi-line content increases textarea height', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    const textarea = page.locator('#question');
+
+    const initialHeight = await textarea.evaluate((el) => el.offsetHeight);
+
+    // Type enough lines to grow
+    await textarea.fill('line 1\nline 2\nline 3\nline 4\nline 5\nline 6');
+
+    const expandedHeight = await textarea.evaluate((el) => el.offsetHeight);
+    expect(expandedHeight).toBeGreaterThan(initialHeight);
+  });
+
+  test('textarea height does not exceed 200px', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    const textarea = page.locator('#question');
+
+    // Fill with many lines
+    const longText = Array.from({ length: 20 }, (_, i) => `line ${i + 1}`).join('\n');
+    await textarea.fill(longText);
+
+    const height = await textarea.evaluate((el) => el.offsetHeight);
+    expect(height).toBeLessThanOrEqual(200);
+  });
+
+  test('clearing textarea resets to original height', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    const textarea = page.locator('#question');
+
+    const initialHeight = await textarea.evaluate((el) => el.offsetHeight);
+
+    // Expand
+    await textarea.fill('line 1\nline 2\nline 3\nline 4\nline 5\nline 6');
+    const expandedHeight = await textarea.evaluate((el) => el.offsetHeight);
+    expect(expandedHeight).toBeGreaterThan(initialHeight);
+
+    // Clear
+    await textarea.fill('');
+
+    const resetHeight = await textarea.evaluate((el) => el.offsetHeight);
+    expect(resetHeight).toBeLessThanOrEqual(initialHeight);
+  });
+});
