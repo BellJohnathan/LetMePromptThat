@@ -23,6 +23,7 @@ Two static sites + shared encoding logic:
 │   ├── index.html
 │   ├── app.js                # Link generation + rotating placeholder animation
 │   ├── styles.css
+│   ├── _headers              # Cloudflare Pages cache headers (no-cache for JS/CSS)
 │   ├── sitemap.xml           # Single-page sitemap for SEO
 │   ├── robots.txt            # Crawl directives
 │   └── shared/cipher.js      # Copy of shared/cipher.js
@@ -30,6 +31,7 @@ Two static sites + shared encoding logic:
 │   ├── index.html
 │   ├── animation.js          # Chat bubble animation + punchline system
 │   ├── styles.css
+│   ├── _headers              # Cloudflare Pages cache headers (no-cache for JS/CSS)
 │   ├── _worker.js            # Cloudflare Worker (OG tags + routing)
 │   ├── robots.txt            # Disallows crawling share links
 │   ├── serve.json            # Local dev SPA routing config
