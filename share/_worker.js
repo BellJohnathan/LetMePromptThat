@@ -15,6 +15,7 @@ export default {
       if (url.pathname.match(/\.(css|js)$/)) {
         const headers = new Headers(response.headers);
         headers.set('Cache-Control', 'no-cache');
+        headers.set('CDN-Cache-Control', 'no-cache');
         return new Response(response.body, { status: response.status, headers });
       }
       return response;
