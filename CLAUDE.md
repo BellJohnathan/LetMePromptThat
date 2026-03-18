@@ -31,8 +31,7 @@ Two static sites + shared encoding logic:
 │   ├── index.html
 │   ├── animation.js          # Chat bubble animation + punchline system
 │   ├── styles.css
-│   ├── _headers              # Cloudflare Pages cache headers (no-cache for JS/CSS)
-│   ├── _worker.js            # Cloudflare Worker (OG tags + routing)
+│   ├── _worker.js            # Cloudflare Worker (OG tags + cache headers + routing)
 │   ├── robots.txt            # Disallows crawling share links
 │   ├── serve.json            # Local dev SPA routing config
 │   └── shared/cipher.js      # Copy of shared/cipher.js
@@ -56,6 +55,8 @@ Share links: `lmpt.io/{slug}#{aiCode}{encoded}`
 ## Deployment
 
 Both sites deploy to Cloudflare Pages. The share site uses `_worker.js` to inject OG meta tags and route all paths to `index.html`.
+
+**Cache headers**: Both zones (lmpt.io, letmeprompthat.com) have Cloudflare Cache Rules configured in the dashboard to set Browser TTL to "Respect origin" for `.js` and `.css` files. Without this, the zone-level Browser Cache TTL (4h) overrides origin `Cache-Control` headers. The creator site sets cache headers via `_headers`; the share site sets them in `_worker.js` (note: `_headers` has no effect when a Worker handles the request).
 
 **Critical**: Cloudflare Pages does not follow symlinks. The `shared/` directories in each site must contain real copies of `cipher.js`, not symlinks.
 
