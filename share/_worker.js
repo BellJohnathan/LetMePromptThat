@@ -10,7 +10,14 @@ export default {
 
     // Serve static assets directly
     if (url.pathname.match(/\.(css|js|png|jpg|ico|svg|woff2?)$/)) {
-      return env.ASSETS.fetch(request);
+      const response = await env.ASSETS.fetch(request);
+      // Force revalidation for JS/CSS so deploys take effect immediately
+      if (url.pathname.match(/\.(css|js)$/)) {
+        const headers = new Headers(response.headers);
+        headers.set('Cache-Control', 'no-cache');
+        return new Response(response.body, { status: response.status, headers });
+      }
+      return response;
     }
 
     // For the root path with no encoded content, serve normally
