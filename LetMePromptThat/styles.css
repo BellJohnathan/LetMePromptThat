@@ -135,10 +135,15 @@ textarea {
   color: var(--text);
   font-family: var(--font-body);
   font-size: 1rem;
+  line-height: 1.5;
   padding: 0.85rem 1rem;
-  resize: vertical;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+  overflow-y: hidden;
+  max-height: 200px;
+  transition: border-color 0.3s ease-out, box-shadow 0.3s ease-out, height 0.15s ease;
   outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }
 
 textarea:focus {
@@ -148,6 +153,23 @@ textarea:focus {
 
 textarea::placeholder {
   color: var(--text-dim);
+}
+
+textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--border-focus);
 }
 
 .placeholder-anim {
@@ -173,6 +195,10 @@ textarea::placeholder {
   vertical-align: text-bottom;
   animation: blink 1s step-end infinite;
   margin-left: 1px;
+}
+
+textarea:focus ~ .placeholder-anim::after {
+  display: none;
 }
 
 .placeholder-anim.hidden {

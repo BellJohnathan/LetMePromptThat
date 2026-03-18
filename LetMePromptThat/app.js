@@ -8,6 +8,14 @@
   const copyBtn = document.getElementById('copy-btn');
   const copyFeedback = document.getElementById('copy-feedback');
   const placeholderEl = document.getElementById('placeholder-anim');
+  const TEXTAREA_MAX = 200;
+
+  function autoExpand() {
+    questionEl.style.height = 'auto';
+    const newHeight = Math.min(questionEl.scrollHeight, TEXTAREA_MAX);
+    questionEl.style.height = newHeight + 'px';
+    questionEl.style.overflowY = questionEl.scrollHeight > TEXTAREA_MAX ? 'auto' : 'hidden';
+  }
 
   // ── Restore saved AI preference ──
   const savedAI = localStorage.getItem('lmpt-ai');
@@ -102,6 +110,7 @@
     if (questionEl.value.length > 0) phStop();
   });
   questionEl.addEventListener('input', () => {
+    autoExpand();
     if (questionEl.value.length > 0) {
       phStop();
     } else if (phStopped) {
@@ -113,6 +122,8 @@
       placeholderEl.textContent = '';
       placeholderEl.classList.remove('hidden');
       phTimer = setTimeout(phType, 400);
+      questionEl.style.height = 'auto';
+      questionEl.style.overflowY = 'hidden';
     }
   });
 
