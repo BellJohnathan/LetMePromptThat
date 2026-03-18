@@ -25,6 +25,13 @@
 !.github/
 !.github/**
 
+# Local tool configs (not part of the project)
+LetMePromptThat/.claude/
+LetMePromptThat/.clavix/
+LetMePromptThat/AGENTS.md
+LetMePromptThat/CLAUDE.md
+LetMePromptThat/IDEAS.md
+
 # OS junk
 .DS_Store
 

@@ -18,8 +18,14 @@
   --accent-hover: #d49530;
   --accent-glow: rgba(232, 168, 56, 0.15);
   --success: #6ee7a0;
+  --brand-perplexity: #1CB0A8;
+  --brand-chatgpt: #10a37f;
+  --brand-claude: #D97706;
+  --brand-gemini: #4285F4;
+  --brand-grok: #1DA1F2;
+  --brand-lechat: #FF7000;
   --user-bubble: #2a2420;
-  --ai-bubble: #1a1714;
+  --ai-bubble: #f5f0eb;
   --font-display: 'DM Serif Display', Georgia, serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
@@ -31,6 +37,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 1rem;
@@ -225,19 +232,19 @@ body::after {
   border-radius: 16px 16px 16px 4px;
   font-family: var(--font-body);
   font-size: 0.95rem;
-  color: var(--text);
+  color: #1e1a18;
   min-width: 60px;
 }
 
 /* ── Input bar (bottom of chat) ── */
 .input-bar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 0.6rem;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 0.7rem 0.85rem;
+  padding: 0.55rem 0.85rem;
   margin-top: auto;
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
@@ -256,6 +263,7 @@ body::after {
   line-height: 1.5;
   min-height: 1.5em;
   word-break: break-word;
+  padding: 0.1rem 0;
 }
 
 /* ── Cursor ── */
@@ -319,7 +327,7 @@ body::after {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--text-dim);
+  background: #6b6260;
   animation: dotPulse 1.4s ease-in-out infinite;
 }
 
@@ -352,18 +360,19 @@ body::after {
 }
 
 .snarky-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
-  font-weight: 400;
+  font-family: var(--font-body);
+  font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
   margin-bottom: 0.35rem;
-  color: var(--text);
+  color: #1e1a18;
   animation: punchlineReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .snarky-subtitle {
   font-size: 0.9rem;
   font-style: italic;
-  color: var(--text-muted);
+  color: #6b6260;
   animation: subtitleReveal 0.5s ease 0.2s both;
 }
 
@@ -399,7 +408,7 @@ body::after {
 /* Brief flash on the AI bubble when punchline hits */
 @keyframes bubbleFlash {
   0% { border-color: var(--border); }
-  30% { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+  30% { border-color: var(--accent); box-shadow: 0 0 20px rgba(232, 168, 56, 0.25); }
   100% { border-color: var(--border); box-shadow: none; }
 }
 
@@ -409,10 +418,43 @@ body::after {
 
 /* ── Redirect notice ── */
 .redirect-notice {
+  max-width: 640px;
+  width: 100%;
+  margin: 0.5rem auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
   text-align: center;
   font-size: 0.85rem;
   color: var(--text-dim);
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
   animation: fadeIn 0.3s ease;
+}
+
+.redirect-notice[data-ai="p"] { border-top: 3px solid var(--brand-perplexity); border-left: none; }
+.redirect-notice[data-ai="g"] { border-top: 3px solid var(--brand-chatgpt); border-left: none; }
+.redirect-notice[data-ai="c"] { border-top: 3px solid var(--brand-claude); border-left: none; }
+.redirect-notice[data-ai="m"] { border-top: 3px solid var(--brand-gemini); border-left: none; }
+.redirect-notice[data-ai="k"] { border-top: 3px solid var(--brand-grok); border-left: none; }
+.redirect-notice[data-ai="l"] { border-top: 3px solid var(--brand-lechat); border-left: none; }
+
+.redirect-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.redirect-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .redirect-notice.hidden {
@@ -421,22 +463,28 @@ body::after {
 
 .cancel-link {
   background: none;
-  border: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   color: var(--accent);
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  text-decoration: underline;
-  margin-left: 0.5rem;
-  transition: color 0.2s;
+  padding: 0.3rem 0.75rem;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
 }
 
 .cancel-link:hover {
-  color: var(--accent-hover);
+  border-color: var(--accent);
+  background: var(--surface-hover);
 }
 
 /* ── AI buttons ── */
 .ai-buttons {
+  max-width: 640px;
+  width: 100%;
+  margin: 0.75rem auto 0;
+  padding: 0 1rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -472,7 +520,7 @@ body::after {
 /* ── Toast ── */
 .toast {
   position: fixed;
-  bottom: 2rem;
+  top: 2rem;
   left: 50%;
   transform: translateX(-50%);
   background: var(--surface);
@@ -483,7 +531,7 @@ body::after {
   padding: 0.75rem 1.25rem;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  animation: fadeInUp 0.3s ease;
+  animation: fadeInDown 0.3s ease;
   z-index: 100;
 }
 
@@ -504,6 +552,17 @@ body::after {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -558,7 +617,7 @@ body::after {
   }
 
   .input-bar {
-    padding: 0.6rem 0.75rem;
+    padding: 0.5rem 0.75rem;
   }
 
   .input-bar-text {
@@ -578,19 +637,18 @@ body::after {
   }
 
   .cancel-link {
-    display: block;
-    margin: 0.5rem auto 0;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
     min-height: 44px;
     min-width: 44px;
   }
 
   .toast {
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-    left: 1rem;
-    right: 1rem;
-    transform: none;
+    top: 1rem;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
     text-align: center;
+    max-width: calc(100% - 2rem);
   }
 }
 
@@ -605,7 +663,7 @@ body::after {
   }
 
   .snarky-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 
   .snarky-subtitle {

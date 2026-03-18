@@ -92,6 +92,48 @@ test.describe('Share page', () => {
     await expect(redirectNotice).toContainText('Perplexity');
   });
 
+  test('aiCode m shows copy+open behavior for Gemini', async ({ page }) => {
+    const hash = buildHash('test question', 'm');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Gemini uses copy+open (like Claude), not redirect
+    const aiButtons = page.locator('#ai-buttons');
+    await expect(aiButtons).toBeVisible({ timeout: 30000 });
+  });
+
+  test('aiCode k shows redirect notice for Grok', async ({ page }) => {
+    const hash = buildHash('test question', 'k');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const redirectNotice = page.locator('#redirect-notice');
+    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+    await expect(redirectNotice).toContainText('Grok');
+  });
+
+  test('aiCode l shows redirect notice for Le Chat', async ({ page }) => {
+    const hash = buildHash('test question', 'l');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const redirectNotice = page.locator('#redirect-notice');
+    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+    await expect(redirectNotice).toContainText('Le Chat');
+  });
+
+  test('redirect notice shows cancel button', async ({ page }) => {
+    const hash = buildHash('test question', 'g');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const cancelBtn = page.locator('#cancel-redirect');
+    await expect(cancelBtn).toBeVisible({ timeout: 30000 });
+
+    // Click cancel
+    await cancelBtn.click();
+
+    // Redirect notice should hide, buttons should show
+    await expect(page.locator('#redirect-notice')).toBeHidden();
+    await expect(page.locator('#ai-buttons')).toBeVisible();
+  });
+
   test('input bar fades after send', async ({ page }) => {
     const hash = buildHash('test question', 'x');
     await page.goto(`${SHARE_BASE}/test${hash}`);

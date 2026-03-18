@@ -1,4 +1,6 @@
 (() => {
+  const CHEVRON_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+
   const questionEl = document.getElementById('question');
   const generateBtn = document.getElementById('generate');
   const resultEl = document.getElementById('result');
@@ -6,6 +8,40 @@
   const copyBtn = document.getElementById('copy-btn');
   const copyFeedback = document.getElementById('copy-feedback');
   const placeholderEl = document.getElementById('placeholder-anim');
+
+  // ── Restore saved AI preference ──
+  const savedAI = localStorage.getItem('lmpt-ai');
+  if (savedAI) {
+    const radio = document.querySelector(`input[name="ai"][value="${savedAI}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  const radioGroup = document.querySelector('.radio-group');
+  const aiLabel = document.querySelector('.ai-options-label');
+  let collapseToggle = null;
+
+  function createCollapseToggle() {
+    collapseToggle = document.createElement('button');
+    collapseToggle.className = 'collapse-toggle';
+    collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+    collapseToggle.addEventListener('click', () => {
+      if (radioGroup.classList.contains('collapsed')) {
+        radioGroup.classList.remove('collapsed');
+        collapseToggle.innerHTML = `Done ${CHEVRON_SVG}`;
+        collapseToggle.classList.add('expanded');
+      } else {
+        radioGroup.classList.add('collapsed');
+        collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+        collapseToggle.classList.remove('expanded');
+      }
+    });
+    aiLabel.appendChild(collapseToggle);
+  }
+
+  if (savedAI) {
+    radioGroup.classList.add('collapsed');
+    createCollapseToggle();
+  }
 
   // ── Rotating placeholder animation ──
   const placeholders = [
@@ -103,6 +139,14 @@
     }
 
     const aiCode = getSelectedAI();
+    localStorage.setItem('lmpt-ai', aiCode);
+
+    // Collapse picker and create toggle on first generate
+    if (!collapseToggle) {
+      radioGroup.classList.add('collapsed');
+      createCollapseToggle();
+    }
+
     const url = buildShareURL(query, aiCode);
 
     resultUrlEl.textContent = url;
@@ -158,10 +202,19 @@
   });
 
   // Auto-regenerate when AI selection changes (if link already visible)
+  // Auto-collapse picker on selection + create toggle if first time
   document.querySelectorAll('input[name="ai"]').forEach((radio) => {
     radio.addEventListener('change', () => {
       if (!resultEl.classList.contains('hidden')) {
         generateLink();
+      }
+      // Auto-collapse after selection
+      if (collapseToggle && !radioGroup.classList.contains('collapsed')) {
+        setTimeout(() => {
+          radioGroup.classList.add('collapsed');
+          collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+          collapseToggle.classList.remove('expanded');
+        }, 200);
       }
     });
   });
@@ -169,5 +222,9 @@
   copyBtn.addEventListener('click', () => {
     const url = `https://${resultUrlEl.textContent}`;
     copyToClipboard(url);
+  });
+
+  document.getElementById('preview-btn').addEventListener('click', () => {
+    window.open('https://' + resultUrlEl.textContent, '_blank');
   });
 })();

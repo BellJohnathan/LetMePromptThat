@@ -48,14 +48,20 @@
   const urls = {
     p: `https://www.perplexity.ai/search/?q=${encodedQuery}`,
     g: `https://chatgpt.com/?q=${encodedQuery}`,
-    c: 'https://claude.ai/new'
+    c: 'https://claude.ai/new',
+    m: 'https://gemini.google.com/app',
+    k: `https://grok.com/?q=${encodedQuery}`,
+    l: `https://chat.mistral.ai/chat?q=${encodedQuery}`,
   };
 
   const aiNames = {
     p: 'Perplexity',
     g: 'ChatGPT',
     c: 'Claude',
-    x: ''
+    x: '',
+    m: 'Gemini',
+    k: 'Grok',
+    l: 'Le Chat',
   };
 
   // Set up AI button hrefs
@@ -63,12 +69,18 @@
   document.getElementById('btn-chatgpt').href = urls.g;
 
   document.getElementById('btn-claude').addEventListener('click', () => {
-    copyAndOpenClaude();
+    copyAndOpen(urls.c, 'Claude');
   });
 
   document.getElementById('btn-copy').addEventListener('click', () => {
     copyQuestion('Question copied to clipboard');
   });
+
+  document.getElementById('btn-gemini').addEventListener('click', () => {
+    copyAndOpen(urls.m, 'Gemini');
+  });
+  document.getElementById('btn-grok').href = urls.k;
+  document.getElementById('btn-lechat').href = urls.l;
 
   // ── Phase 1: Typewriter in the input bar ──
   let charIndex = 0;
@@ -157,15 +169,16 @@
       return;
     }
 
-    if (aiCode === 'c') {
-      // Claude: copy + open
-      copyAndOpenClaude();
+    if (aiCode === 'c' || aiCode === 'm') {
+      // Claude/Gemini: copy + open
+      copyAndOpen(urls[aiCode], aiNames[aiCode]);
       return;
     }
 
     // Perplexity or ChatGPT: auto-redirect with cancel option
     const name = aiNames[aiCode] || 'Perplexity';
     redirectText.textContent = `Redirecting to ${name}...`;
+    redirectNotice.dataset.ai = aiCode;
     redirectNotice.classList.remove('hidden');
 
     redirectTimer = setTimeout(() => {
@@ -194,12 +207,12 @@
     }
   }
 
-  async function copyAndOpenClaude() {
+  async function copyAndOpen(url, name) {
     try {
       await navigator.clipboard.writeText(query);
-      showToast('Question copied to clipboard — just paste it in Claude!');
+      showToast(`Question copied to clipboard — just paste it in ${name}!`);
       setTimeout(() => {
-        window.open(urls.c, '_blank');
+        window.open(url, '_blank');
       }, 500);
     } catch {
       showToast('Could not copy — select the question above and copy manually');

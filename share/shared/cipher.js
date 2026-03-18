@@ -65,7 +65,7 @@ function slugHash(query) {
 /**
  * Build a full share URL.
  * @param {string} query - The question text
- * @param {string} aiCode - One of 'p', 'g', 'c', 'x'
+ * @param {string} aiCode - One of 'p', 'g', 'c', 'x', 'm', 'k', 'l'
  * @returns {string} The full lmpt.io URL
  */
 function buildShareURL(query, aiCode = 'p') {
@@ -86,8 +86,8 @@ function parseShareURL(_pathname, hash) {
   const fragment = hash ? hash.replace(/^#/, '') : '';
   if (!fragment) return { query: null, aiCode: 'p' };
 
-  const aiCode = /^[pgcx]/.test(fragment) ? fragment[0] : 'p';
-  const encoded = /^[pgcx]/.test(fragment) ? fragment.slice(1) : fragment;
+  const aiCode = /^[pgcxmkl]/.test(fragment) ? fragment[0] : 'p';
+  const encoded = /^[pgcxmkl]/.test(fragment) ? fragment.slice(1) : fragment;
 
   try {
     return { query: decodeQuery(encoded), aiCode };
