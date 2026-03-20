@@ -24,13 +24,13 @@ test.describe('Creator page', () => {
     await page.goto(CREATOR_BASE);
     await page.fill('#question', 'test query');
 
-    for (const code of ['g', 'c', 'x', 'p']) {
+    for (const code of ['g', 'c', 'p']) {
       // Expand picker if collapsed (after first generate, it auto-collapses)
       const toggle = page.locator('.collapse-toggle');
       if (await toggle.isVisible()) {
         await toggle.click();
         // Wait for expansion
-        await expect(page.locator('.radio-option:visible')).toHaveCount(7, { timeout: 2000 });
+        await expect(page.locator('.radio-option:visible')).toHaveCount(6, { timeout: 2000 });
       }
       await page.check(`input[name="ai"][value="${code}"]`);
       // Wait for auto-collapse to finish before next iteration
@@ -160,9 +160,9 @@ test.describe('Creator page (mobile viewport)', () => {
 
     // All radio options should be visible
     const radios = page.locator('.radio-option');
-    await expect(radios).toHaveCount(7);
+    await expect(radios).toHaveCount(6);
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 6; i++) {
       await expect(radios.nth(i)).toBeVisible();
     }
   });
@@ -240,7 +240,7 @@ test.describe('Creator page localStorage persistence', () => {
     // All options should be visible now
     const visibleOptions = page.locator('.radio-option:visible');
     const count = await visibleOptions.count();
-    expect(count).toBeGreaterThanOrEqual(7);
+    expect(count).toBeGreaterThanOrEqual(6);
   });
 
   test('can re-collapse after expanding', async ({ page }) => {
@@ -256,7 +256,7 @@ test.describe('Creator page localStorage persistence', () => {
     // Expand
     await page.click('.collapse-toggle');
     const expandedCount = await page.locator('.radio-option:visible').count();
-    expect(expandedCount).toBeGreaterThanOrEqual(7);
+    expect(expandedCount).toBeGreaterThanOrEqual(6);
 
     // Re-collapse
     await page.click('.collapse-toggle');
@@ -276,7 +276,7 @@ test.describe('Creator page localStorage persistence', () => {
 
     // Expand
     await page.click('.collapse-toggle');
-    await expect(page.locator('.radio-option:visible')).toHaveCount(7);
+    await expect(page.locator('.radio-option:visible')).toHaveCount(6);
 
     // Pick a new AI
     await page.check('input[name="ai"][value="c"]');
@@ -295,7 +295,7 @@ test.describe('Creator page localStorage persistence', () => {
 
     // All options visible
     const visibleOptions = page.locator('.radio-option:visible');
-    await expect(visibleOptions).toHaveCount(7);
+    await expect(visibleOptions).toHaveCount(6);
   });
 });
 
@@ -349,5 +349,84 @@ test.describe('Creator page auto-expanding textarea', () => {
 
     const resetHeight = await textarea.evaluate((el) => el.offsetHeight);
     expect(resetHeight).toBeLessThanOrEqual(initialHeight);
+  });
+});
+
+test.describe('Creator page mobile subtitles', () => {
+  test.use({
+    viewport: { width: 375, height: 667 },
+    hasTouch: true,
+    isMobile: true,
+  });
+
+  test('subtitles are present in DOM for all radio options', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    const subtitles = page.locator('.radio-subtitle');
+    await expect(subtitles).toHaveCount(6);
+
+    const expectedSubtitles = [
+      'Auto-submits your question',
+      'Auto-submits your question',
+      'Auto-submits your question',
+      'Pre-fills in the chat',
+      'Copies question, opens Claude',
+      'Copies question, opens Gemini',
+    ];
+
+    for (let i = 0; i < expectedSubtitles.length; i++) {
+      await expect(subtitles.nth(i)).toHaveText(expectedSubtitles[i]);
+    }
+  });
+
+  test('subtitles are visible on touch devices via hover:none media query', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    const hasHoverNoneRule = await page.evaluate(() => {
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            if (rule.conditionText && rule.conditionText.includes('hover: none')) {
+              for (const innerRule of rule.cssRules) {
+                if (innerRule.selectorText === '.radio-subtitle' &&
+                    innerRule.style.display === 'block') {
+                  return true;
+                }
+              }
+            }
+          }
+        } catch { /* cross-origin sheets */ }
+      }
+      return false;
+    });
+
+    expect(hasHoverNoneRule).toBe(true);
+  });
+
+  test('subtitles are hidden by default (desktop)', async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 720 },
+      hasTouch: false,
+      isMobile: false,
+    });
+    const page = await context.newPage();
+    await page.goto(CREATOR_BASE);
+
+    const subtitle = page.locator('.radio-subtitle').first();
+    const display = await subtitle.evaluate((el) => getComputedStyle(el).display);
+    expect(display).toBe('none');
+
+    await context.close();
+  });
+
+  test('cursor-following tooltip element exists', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    const tooltip = page.locator('#radio-tooltip');
+    await expect(tooltip).toHaveCount(1);
+
+    // Tooltip should be hidden by default
+    const opacity = await tooltip.evaluate((el) => getComputedStyle(el).opacity);
+    expect(opacity).toBe('0');
   });
 });

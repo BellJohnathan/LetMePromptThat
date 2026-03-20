@@ -8,6 +8,9 @@
   <meta property="og:description" content="Someone sent you something">
   <meta property="og:type" content="website">
   <meta name="theme-color" content="#121010">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="canonical" href="https://lmpt.io/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,8 +83,10 @@
   </div>
 
   <div id="redirect-notice" class="redirect-notice hidden">
-    <span id="redirect-icon" class="redirect-icon"></span>
-    <span id="redirect-text"></span>
+    <div class="redirect-row">
+      <span id="redirect-icon" class="redirect-icon"></span>
+      <span id="redirect-text"></span>
+    </div>
     <button id="cancel-redirect" class="cancel-link">Cancel</button>
   </div>
 
