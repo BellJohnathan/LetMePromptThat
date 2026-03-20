@@ -218,7 +218,9 @@ textarea:focus ~ .placeholder-anim::after {
 }
 
 .ai-options-label {
-  display: block;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -271,56 +273,57 @@ textarea:focus ~ .placeholder-anim::after {
   color: var(--accent);
 }
 
+.radio-label-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
 .radio-name {
   font-weight: 500;
   font-size: 0.82rem;
-  flex: 1;
 }
 
-/* Hide tooltips inside grid — they crowd 3-column cells */
-.radio-group .tooltip-wrap {
+.radio-subtitle {
   display: none;
-}
-
-/* Tooltip system */
-.tooltip-wrap {
-  position: relative;
-  margin-left: auto;
-  display: inline-flex;
+  font-size: 0.65rem;
+  font-weight: 400;
   color: var(--text-dim);
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  margin-top: 1px;
 }
 
-.info-icon {
-  transition: color 0.2s;
-}
-
-.tooltip-wrap:hover .info-icon {
-  color: var(--text-muted);
-}
-
-.tooltip {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%) translateY(6px) scale(0.94);
+/* Cursor-following tooltip (desktop only, driven by JS) */
+.radio-tooltip {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px) scale(0.96);
+  transition: opacity 180ms ease-out, transform 180ms ease-out, left 80ms ease-out, top 80ms ease-out;
+  padding: 0.4rem 0.7rem;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  background: rgba(38, 34, 32, 0.85);
+  background: rgba(38, 34, 32, 0.88);
   border: 1px solid var(--border-focus);
   border-radius: 8px;
-  padding: 0.4rem 0.65rem;
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 400;
   letter-spacing: 0.01em;
-  white-space: nowrap;
   color: var(--text);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 220ms ease-out, transform 220ms ease-out;
-  z-index: 10;
+  white-space: nowrap;
+  max-width: 240px;
 }
 
-.tooltip::after {
+.radio-tooltip.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+
+.radio-tooltip::after {
   content: '';
   position: absolute;
   top: 100%;
@@ -328,28 +331,6 @@ textarea:focus ~ .placeholder-anim::after {
   transform: translateX(-50%);
   border: 5px solid transparent;
   border-top-color: var(--border-focus);
-}
-
-.tooltip-wrap:hover .tooltip {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0) scale(1);
-}
-
-/* Right-column tooltip overflow fix */
-.radio-option:nth-child(even) .tooltip {
-  left: auto;
-  right: 0;
-  transform: translateY(6px) scale(0.94);
-}
-
-.radio-option:nth-child(even) .tooltip::after {
-  left: auto;
-  right: 8px;
-  transform: none;
-}
-
-.radio-option:nth-child(even) .tooltip-wrap:hover .tooltip {
-  transform: translateY(0) scale(1);
 }
 
 .btn-generate {
@@ -490,8 +471,6 @@ footer a:hover {
   text-decoration: underline;
 }
 
-.radio-option-none { grid-column: 1 / -1; }
-
 .radio-group.collapsed .radio-option { display: none; }
 .radio-group.collapsed .radio-option:has(input:checked) { display: flex; }
 .radio-group.collapsed { grid-template-columns: 1fr; }
@@ -508,7 +487,6 @@ footer a:hover {
   font-family: var(--font-body);
   font-size: 0.8rem;
   cursor: pointer;
-  margin-left: 0.5rem;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -581,31 +559,14 @@ footer a:hover {
     min-height: 44px;
   }
 
-  /* Center-align all tooltips in single column */
-  .radio-option:nth-child(even) .tooltip {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%) translateY(6px) scale(0.94);
-  }
-
-  .radio-option:nth-child(even) .tooltip::after {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-  }
-
-  .radio-option:nth-child(even) .tooltip-wrap:hover .tooltip {
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-
   footer {
     margin-top: 2rem;
   }
 }
 
-/* Hide tooltips on touch devices — they require hover */
+/* Show subtitles always on touch devices */
 @media (hover: none) {
-  .tooltip {
-    display: none;
+  .radio-subtitle {
+    display: block;
   }
 }
