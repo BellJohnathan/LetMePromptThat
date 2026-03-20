@@ -31,15 +31,15 @@
   function createCollapseToggle() {
     collapseToggle = document.createElement('button');
     collapseToggle.className = 'collapse-toggle';
-    collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+    collapseToggle.innerHTML = `View all ${CHEVRON_SVG}`;
     collapseToggle.addEventListener('click', () => {
       if (radioGroup.classList.contains('collapsed')) {
         radioGroup.classList.remove('collapsed');
-        collapseToggle.innerHTML = `Done ${CHEVRON_SVG}`;
+        collapseToggle.innerHTML = `View less ${CHEVRON_SVG}`;
         collapseToggle.classList.add('expanded');
       } else {
         radioGroup.classList.add('collapsed');
-        collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+        collapseToggle.innerHTML = `View all ${CHEVRON_SVG}`;
         collapseToggle.classList.remove('expanded');
       }
     });
@@ -223,7 +223,7 @@
       if (collapseToggle && !radioGroup.classList.contains('collapsed')) {
         setTimeout(() => {
           radioGroup.classList.add('collapsed');
-          collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+          collapseToggle.innerHTML = `View all ${CHEVRON_SVG}`;
           collapseToggle.classList.remove('expanded');
         }, 200);
       }
@@ -238,4 +238,30 @@
   document.getElementById('preview-btn').addEventListener('click', () => {
     window.open('https://' + resultUrlEl.textContent, '_blank');
   });
+
+  // ── Cursor-following tooltip (desktop only) ──
+  if (window.matchMedia('(hover: hover)').matches) {
+    const tooltip = document.getElementById('radio-tooltip');
+    const tooltipText = document.getElementById('radio-tooltip-text');
+
+    document.querySelectorAll('.radio-option').forEach((option) => {
+      const subtitle = option.querySelector('.radio-subtitle');
+      if (!subtitle) return;
+
+      option.addEventListener('mouseenter', () => {
+        if (radioGroup.classList.contains('collapsed')) return;
+        tooltipText.textContent = subtitle.textContent;
+        tooltip.classList.add('visible');
+      });
+
+      option.addEventListener('mousemove', (e) => {
+        tooltip.style.left = e.clientX + 'px';
+        tooltip.style.top = (e.clientY - 40) + 'px';
+      });
+
+      option.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+      });
+    });
+  }
 })();
