@@ -172,3 +172,48 @@ test.describe('Share page (mobile viewport)', () => {
     expect(box.height).toBeGreaterThanOrEqual(44);
   });
 });
+
+test.describe('Share page branded redirect icons', () => {
+  test('redirect notice shows brand icon for Perplexity', async ({ page }) => {
+    const hash = buildHash('test question', 'p');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const redirectNotice = page.locator('#redirect-notice');
+    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+
+    const icon = page.locator('#redirect-icon svg');
+    await expect(icon).toBeVisible();
+  });
+
+  test('redirect notice shows brand icon for Grok', async ({ page }) => {
+    const hash = buildHash('test question', 'k');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const redirectNotice = page.locator('#redirect-notice');
+    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+
+    const icon = page.locator('#redirect-icon svg');
+    await expect(icon).toBeVisible();
+  });
+
+  test('redirect notice shows brand icon for ChatGPT', async ({ page }) => {
+    const hash = buildHash('test question', 'g');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const redirectNotice = page.locator('#redirect-notice');
+    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+
+    const icon = page.locator('#redirect-icon svg');
+    await expect(icon).toBeVisible();
+  });
+
+  test('redirect notice has brand color applied', async ({ page }) => {
+    const hash = buildHash('test question', 'p');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const redirectNotice = page.locator('#redirect-notice');
+    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+
+    await expect(redirectNotice).toHaveAttribute('data-ai', 'p');
+  });
+});

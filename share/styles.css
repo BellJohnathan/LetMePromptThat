@@ -436,25 +436,44 @@ body::after {
   animation: fadeIn 0.3s ease;
 }
 
-.redirect-notice[data-ai="p"] { border-top: 3px solid var(--brand-perplexity); border-left: none; }
-.redirect-notice[data-ai="g"] { border-top: 3px solid var(--brand-chatgpt); border-left: none; }
-.redirect-notice[data-ai="c"] { border-top: 3px solid var(--brand-claude); border-left: none; }
-.redirect-notice[data-ai="m"] { border-top: 3px solid var(--brand-gemini); border-left: none; }
-.redirect-notice[data-ai="k"] { border-top: 3px solid var(--brand-grok); border-left: none; }
-.redirect-notice[data-ai="l"] { border-top: 3px solid var(--brand-lechat); border-left: none; }
+.redirect-notice[data-ai="p"] { border-top: 3px solid var(--brand-perplexity); }
+.redirect-notice[data-ai="g"] { border-top: 3px solid var(--brand-chatgpt); }
+.redirect-notice[data-ai="c"] { border-top: 3px solid var(--brand-claude); }
+.redirect-notice[data-ai="m"] { border-top: 3px solid var(--brand-gemini); }
+.redirect-notice[data-ai="k"] { border-top: 3px solid var(--brand-grok); }
+.redirect-notice[data-ai="l"] { border-top: 3px solid var(--brand-lechat); }
+
+.redirect-notice[data-ai="p"] .redirect-icon,
+.redirect-notice[data-ai="p"] #redirect-text { color: var(--brand-perplexity); }
+.redirect-notice[data-ai="g"] .redirect-icon,
+.redirect-notice[data-ai="g"] #redirect-text { color: var(--brand-chatgpt); }
+.redirect-notice[data-ai="c"] .redirect-icon,
+.redirect-notice[data-ai="c"] #redirect-text { color: var(--brand-claude); }
+.redirect-notice[data-ai="m"] .redirect-icon,
+.redirect-notice[data-ai="m"] #redirect-text { color: var(--brand-gemini); }
+.redirect-notice[data-ai="k"] .redirect-icon,
+.redirect-notice[data-ai="k"] #redirect-text { color: var(--brand-grok); }
+.redirect-notice[data-ai="l"] .redirect-icon,
+.redirect-notice[data-ai="l"] #redirect-text { color: var(--brand-lechat); }
+
+.redirect-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 .redirect-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 
 .redirect-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
 }
 
 .redirect-notice.hidden {
@@ -462,21 +481,27 @@ body::after {
 }
 
 .cancel-link {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: rgba(232, 168, 56, 0.08);
+  border: 1px solid var(--border-focus);
+  border-radius: 8px;
   color: var(--accent);
   font-family: var(--font-body);
   font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.3rem 0.75rem;
+  padding: 0.45rem 1.25rem;
+  min-height: 44px;
+  min-width: 80px;
   transition: background 0.2s, border-color 0.2s;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cancel-link:hover {
   border-color: var(--accent);
-  background: var(--surface-hover);
+  background: rgba(232, 168, 56, 0.15);
 }
 
 /* ── AI buttons ── */
