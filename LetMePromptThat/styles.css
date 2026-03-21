@@ -108,7 +108,7 @@ h1::after {
 main {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .input-group {
@@ -117,9 +117,11 @@ main {
 
 .input-group label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
   margin-bottom: 0.5rem;
 }
 
@@ -210,10 +212,8 @@ textarea:focus ~ .placeholder-anim::after {
 }
 
 .ai-options {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem 1.15rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
 }
 
@@ -221,10 +221,23 @@ textarea:focus ~ .placeholder-anim::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 0.85rem;
+}
+
+.saved-badge {
+  font-size: 0.65rem;
   font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 0.65rem;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: rgba(232, 168, 56, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  opacity: 0.85;
 }
 
 .radio-group {
@@ -361,15 +374,15 @@ textarea:focus ~ .placeholder-anim::after {
 }
 
 .btn-generate.active {
-  background: var(--accent);
+  background: linear-gradient(135deg, #f59e0b, #d49530);
   color: var(--bg);
-  border-color: var(--accent);
+  border-color: transparent;
 }
 
 .btn-generate.active:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  box-shadow: 0 0 24px var(--accent-glow);
+  background: linear-gradient(135deg, #d49530, #c28a28);
+  border-color: transparent;
+  box-shadow: 0 4px 24px rgba(232, 168, 56, 0.3);
 }
 
 .btn-generate.active:hover .shortcut-hint {
