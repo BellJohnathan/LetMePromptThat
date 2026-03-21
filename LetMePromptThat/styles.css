@@ -19,7 +19,7 @@
   --accent-glow: rgba(232, 168, 56, 0.15);
   --accent-subtle: rgba(232, 168, 56, 0.25);
   --success: #6ee7a0;
-  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-display: 'Outfit', -apple-system, sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 }
@@ -46,8 +46,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(232, 168, 56, 0.04), transparent),
-    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(232, 168, 56, 0.03), transparent);
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(232, 168, 56, 0.05), transparent),
+    radial-gradient(ellipse 50% 50% at 50% 15%, rgba(232, 168, 56, 0.04), transparent),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(232, 168, 56, 0.035), transparent);
   pointer-events: none;
   z-index: 0;
 }
@@ -72,15 +73,15 @@ body::after {
 
 header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: clamp(1.5rem, 3.5vh, 2.5rem);
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 h1 {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-size: clamp(2.5rem, 5vw, 3rem);
+  font-weight: 300;
+  letter-spacing: -0.025em;
   margin-bottom: 0.75rem;
   color: var(--text);
   position: relative;
@@ -90,11 +91,11 @@ h1 {
 h1::after {
   content: '';
   display: block;
-  width: 60%;
+  width: 50%;
   height: 2px;
   background: var(--accent);
-  opacity: 0.5;
-  margin: 0.4rem auto 0;
+  opacity: 0.45;
+  margin: 1rem auto 0;
   border-radius: 1px;
 }
 
@@ -108,7 +109,7 @@ h1::after {
 main {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: clamp(1rem, 2vh, 1.5rem);
 }
 
 .input-group {
@@ -117,10 +118,12 @@ main {
 
 .input-group label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: clamp(0.4rem, 1vh, 0.65rem);
 }
 
 .textarea-wrap {
@@ -147,8 +150,8 @@ textarea {
 }
 
 textarea:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--accent-subtle);
+  border-color: rgba(232, 168, 56, 0.35);
+  box-shadow: 0 0 16px rgba(232, 168, 56, 0.08), 0 0 40px rgba(232, 168, 56, 0.04);
 }
 
 textarea::placeholder {
@@ -210,10 +213,6 @@ textarea:focus ~ .placeholder-anim::after {
 }
 
 .ai-options {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem 1.15rem;
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
 }
 
@@ -221,10 +220,12 @@ textarea:focus ~ .placeholder-anim::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: clamp(0.4rem, 1vh, 0.65rem);
 }
 
 .radio-group {
@@ -238,22 +239,30 @@ textarea:focus ~ .placeholder-anim::after {
   align-items: center;
   gap: 0.35rem;
   cursor: pointer;
-  padding: 0.4rem 0.5rem;
+  padding: 0.55rem 0.65rem;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   position: relative;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s ease;
 }
 
 .radio-option:hover {
   background: var(--surface-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.radio-option:focus-within {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
 .radio-option:has(input:checked) {
   border-color: var(--accent);
   background: var(--bg-subtle);
-  box-shadow: 0 0 16px var(--accent-glow);
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .radio-option input[type="radio"] {
@@ -335,26 +344,81 @@ textarea:focus ~ .placeholder-anim::after {
 
 .btn-generate {
   width: 100%;
-  padding: 0.85rem;
-  background: var(--accent);
-  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  padding: 0.85rem 1.15rem;
+  background: var(--surface-hover);
+  color: var(--text-dim);
   font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 600;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
 }
 
-.btn-generate:hover {
-  background: var(--accent-hover);
-  box-shadow: 0 0 24px var(--accent-glow);
+.btn-generate.active {
+  background: linear-gradient(135deg, #f59e0b, #d49530);
+  color: var(--bg);
+  border-color: transparent;
+}
+
+.btn-generate.active:hover {
+  background: linear-gradient(135deg, #d49530, #c28a28);
+  border-color: transparent;
+  box-shadow: 0 4px 24px rgba(232, 168, 56, 0.3);
+}
+
+.btn-generate.active:hover .shortcut-hint {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.btn-generate:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.btn-generate.active:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent-subtle), 0 0 24px var(--accent-glow);
 }
 
 .btn-generate:active {
-  transform: scale(0.99);
+  transform: scale(0.96);
+}
+
+.shortcut-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: inherit;
+  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+  line-height: 1;
+  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.shortcut-return {
+  position: relative;
+  top: 1px;
+}
+
+.btn-generate.active .shortcut-hint {
+  opacity: 0.65;
+  background: rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .result {
@@ -383,11 +447,11 @@ textarea:focus ~ .placeholder-anim::after {
 }
 
 .btn-copy, .btn-preview {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  background: transparent;
-  color: var(--text);
+  background: var(--surface-hover);
+  color: var(--text-muted);
   font-family: var(--font-body);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -405,6 +469,12 @@ textarea:focus ~ .placeholder-anim::after {
   color: var(--accent);
 }
 
+.btn-copy:focus-visible, .btn-preview:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
 .btn-copy.copied {
   border-color: var(--success);
   color: var(--success);
@@ -412,9 +482,9 @@ textarea:focus ~ .placeholder-anim::after {
 }
 
 @keyframes copyPulse {
-  0% { transform: scale(0.9); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(110, 231, 160, 0.4); }
+  50% { transform: scale(1.08); box-shadow: 0 0 12px rgba(110, 231, 160, 0.3); }
+  100% { transform: scale(1); box-shadow: none; }
 }
 
 .copy-feedback {
@@ -454,7 +524,7 @@ textarea:focus ~ .placeholder-anim::after {
 
 footer {
   text-align: center;
-  margin-top: 3rem;
+  margin-top: 2rem;
   color: var(--text-dim);
   font-size: 0.8rem;
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
@@ -478,6 +548,53 @@ footer a:hover {
   box-shadow: none;
   border-color: var(--border);
   background: var(--surface);
+  transform: none;
+}
+
+.radio-group.collapsed .radio-option:has(input:checked) .radio-logo {
+  color: var(--text-dim);
+}
+
+/* Staggered result entrance (first reveal only, JS adds .animate-entrance) */
+.result.animate-entrance .result-url {
+  animation: fadeSlideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+}
+
+.result.animate-entrance .btn-copy {
+  animation: fadeScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.result.animate-entrance .btn-preview {
+  animation: fadeScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+}
+
+.result.animate-entrance .copy-feedback {
+  animation: fadeScale 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+}
+
+@keyframes fadeSlideRight {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeScale {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Staggered fade-in when expanding radio options */
+.radio-group:not(.collapsed) .radio-option {
+  animation: radioFadeIn 0.25s ease both;
+}
+.radio-group:not(.collapsed) .radio-option:nth-child(2) { animation-delay: 30ms; }
+.radio-group:not(.collapsed) .radio-option:nth-child(3) { animation-delay: 60ms; }
+.radio-group:not(.collapsed) .radio-option:nth-child(4) { animation-delay: 90ms; }
+.radio-group:not(.collapsed) .radio-option:nth-child(5) { animation-delay: 120ms; }
+.radio-group:not(.collapsed) .radio-option:nth-child(6) { animation-delay: 150ms; }
+
+@keyframes radioFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .collapse-toggle {
@@ -498,6 +615,11 @@ footer a:hover {
 .collapse-toggle:hover {
   color: var(--accent);
   background: var(--surface-hover);
+}
+
+.collapse-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
 .collapse-toggle svg {
@@ -542,6 +664,10 @@ footer a:hover {
     font-size: 1rem;
   }
 
+  .shortcut-hint {
+    display: none;
+  }
+
   .result {
     flex-direction: row;
     flex-wrap: wrap;
@@ -555,7 +681,7 @@ footer a:hover {
   }
 
   .btn-copy, .btn-preview {
-    width: 36px;
+    width: 44px;
     min-height: 44px;
   }
 
