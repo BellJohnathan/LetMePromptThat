@@ -10,6 +10,9 @@
   const placeholderEl = document.getElementById('placeholder-anim');
   const TEXTAREA_MAX = 200;
 
+  function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
+  function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
   function autoExpand() {
     questionEl.style.height = 'auto';
     const newHeight = Math.min(questionEl.scrollHeight, TEXTAREA_MAX);
@@ -18,7 +21,7 @@
   }
 
   // ── Restore saved AI preference ──
-  const savedAI = localStorage.getItem('lmpt-ai');
+  const savedAI = safeGet('lmpt-ai');
   if (savedAI) {
     const radio = document.querySelector(`input[name="ai"][value="${savedAI}"]`);
     if (radio) radio.checked = true;
@@ -109,8 +112,13 @@
   questionEl.addEventListener('focus', () => {
     if (questionEl.value.length > 0) phStop();
   });
+  function updateButtonState() {
+    generateBtn.classList.toggle('active', questionEl.value.trim().length > 0);
+  }
+
   questionEl.addEventListener('input', () => {
     autoExpand();
+    updateButtonState();
     if (questionEl.value.length > 0) {
       phStop();
     } else if (phStopped) {
@@ -130,11 +138,11 @@
   // Start animation
   phTimer = setTimeout(phType, 800);
 
-  const COPY_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  const COPY_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
   </svg>`;
 
-  const CHECK_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  const CHECK_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="20 6 9 17 4 12"/>
   </svg>`;
 
@@ -150,7 +158,7 @@
     }
 
     const aiCode = getSelectedAI();
-    localStorage.setItem('lmpt-ai', aiCode);
+    safeSet('lmpt-ai', aiCode);
 
     // Collapse picker and create toggle on first generate
     if (!collapseToggle) {
@@ -161,6 +169,10 @@
     const url = buildShareURL(query, aiCode);
 
     resultUrlEl.textContent = url;
+    if (resultEl.classList.contains('hidden')) {
+      resultEl.classList.add('animate-entrance');
+      setTimeout(() => resultEl.classList.remove('animate-entrance'), 600);
+    }
     resultEl.classList.remove('hidden');
 
     // Auto-copy
@@ -178,19 +190,24 @@
     }
   }
 
+  let copyIconTimer = null;
+  let copyFeedbackTimer = null;
+
   function showCopySuccess() {
+    clearTimeout(copyIconTimer);
     copyBtn.innerHTML = CHECK_SVG;
     copyBtn.classList.add('copied');
-    setTimeout(() => {
+    copyIconTimer = setTimeout(() => {
       copyBtn.innerHTML = COPY_SVG;
       copyBtn.classList.remove('copied');
-    }, 1500);
+    }, 2000);
   }
 
   function showCopyFeedback(msg) {
+    clearTimeout(copyFeedbackTimer);
     copyFeedback.textContent = msg;
     copyFeedback.classList.add('visible');
-    setTimeout(() => copyFeedback.classList.remove('visible'), 2500);
+    copyFeedbackTimer = setTimeout(() => copyFeedback.classList.remove('visible'), 2000);
   }
 
   generateBtn.addEventListener('click', generateLink);
@@ -214,6 +231,7 @@
 
   // Auto-regenerate when AI selection changes (if link already visible)
   // Auto-collapse picker on selection + create toggle if first time
+  let collapseTimer = null;
   document.querySelectorAll('input[name="ai"]').forEach((radio) => {
     radio.addEventListener('change', () => {
       if (!resultEl.classList.contains('hidden')) {
@@ -221,7 +239,8 @@
       }
       // Auto-collapse after selection
       if (collapseToggle && !radioGroup.classList.contains('collapsed')) {
-        setTimeout(() => {
+        clearTimeout(collapseTimer);
+        collapseTimer = setTimeout(() => {
           radioGroup.classList.add('collapsed');
           collapseToggle.innerHTML = `View all ${CHEVRON_SVG}`;
           collapseToggle.classList.remove('expanded');
@@ -244,24 +263,41 @@
     const tooltip = document.getElementById('radio-tooltip');
     const tooltipText = document.getElementById('radio-tooltip-text');
 
+    let tooltipRAF = null;
+    let tooltipShowTimer = null;
+
     document.querySelectorAll('.radio-option').forEach((option) => {
       const subtitle = option.querySelector('.radio-subtitle');
       if (!subtitle) return;
 
       option.addEventListener('mouseenter', () => {
         if (radioGroup.classList.contains('collapsed')) return;
-        tooltipText.textContent = subtitle.textContent;
-        tooltip.classList.add('visible');
+        clearTimeout(tooltipShowTimer);
+        tooltipShowTimer = setTimeout(() => {
+          tooltipText.textContent = subtitle.textContent;
+          tooltip.classList.add('visible');
+        }, 200);
       });
 
       option.addEventListener('mousemove', (e) => {
-        tooltip.style.left = e.clientX + 'px';
-        tooltip.style.top = (e.clientY - 40) + 'px';
+        if (tooltipRAF) return;
+        tooltipRAF = requestAnimationFrame(() => {
+          tooltip.style.left = e.clientX + 'px';
+          tooltip.style.top = (e.clientY - 40) + 'px';
+          tooltipRAF = null;
+        });
       });
 
       option.addEventListener('mouseleave', () => {
+        clearTimeout(tooltipShowTimer);
         tooltip.classList.remove('visible');
       });
     });
   }
+  // ── Keyboard shortcut hint ──
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+  const shortcutHint = document.querySelector('.shortcut-hint');
+  if (shortcutHint) shortcutHint.innerHTML = isMac
+    ? '⌘ <span class="shortcut-return">↵</span>'
+    : 'Ctrl <span class="shortcut-return">↵</span>';
 })();
