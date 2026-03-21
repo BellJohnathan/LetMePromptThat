@@ -30,7 +30,6 @@
   const radioGroup = document.querySelector('.radio-group');
   const aiLabel = document.querySelector('.ai-options-label');
   let collapseToggle = null;
-  let savedBadge = null;
 
   function createCollapseToggle() {
     collapseToggle = document.createElement('button');
@@ -50,21 +49,9 @@
     aiLabel.appendChild(collapseToggle);
   }
 
-  function removeSavedBadge() {
-    if (savedBadge) {
-      savedBadge.remove();
-      savedBadge = null;
-    }
-  }
-
   if (savedAI) {
     radioGroup.classList.add('collapsed');
     createCollapseToggle();
-    // Show "Your last pick" badge for restored preference
-    savedBadge = document.createElement('span');
-    savedBadge.className = 'saved-badge';
-    savedBadge.textContent = 'Your last pick';
-    aiLabel.insertBefore(savedBadge, collapseToggle);
   }
 
   // ── Rotating placeholder animation ──
@@ -247,7 +234,6 @@
   let collapseTimer = null;
   document.querySelectorAll('input[name="ai"]').forEach((radio) => {
     radio.addEventListener('change', () => {
-      removeSavedBadge();
       if (!resultEl.classList.contains('hidden')) {
         generateLink();
       }

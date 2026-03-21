@@ -19,7 +19,7 @@
   --accent-glow: rgba(232, 168, 56, 0.15);
   --accent-subtle: rgba(232, 168, 56, 0.25);
   --success: #6ee7a0;
-  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-display: 'Outfit', -apple-system, sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 }
@@ -46,8 +46,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(232, 168, 56, 0.04), transparent),
-    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(232, 168, 56, 0.03), transparent);
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(232, 168, 56, 0.05), transparent),
+    radial-gradient(ellipse 50% 50% at 50% 15%, rgba(232, 168, 56, 0.04), transparent),
+    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(232, 168, 56, 0.035), transparent);
   pointer-events: none;
   z-index: 0;
 }
@@ -72,15 +73,15 @@ body::after {
 
 header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: clamp(1.5rem, 3.5vh, 2.5rem);
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 h1 {
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-size: clamp(2.5rem, 5vw, 3rem);
+  font-weight: 300;
+  letter-spacing: -0.025em;
   margin-bottom: 0.75rem;
   color: var(--text);
   position: relative;
@@ -90,11 +91,11 @@ h1 {
 h1::after {
   content: '';
   display: block;
-  width: 60%;
+  width: 50%;
   height: 2px;
-  background: var(--border-focus);
-  opacity: 0.7;
-  margin: 0.4rem auto 0;
+  background: var(--accent);
+  opacity: 0.45;
+  margin: 1rem auto 0;
   border-radius: 1px;
 }
 
@@ -108,7 +109,7 @@ h1::after {
 main {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: clamp(1rem, 2vh, 1.5rem);
 }
 
 .input-group {
@@ -122,7 +123,7 @@ main {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-dim);
-  margin-bottom: 0.5rem;
+  margin-bottom: clamp(0.4rem, 1vh, 0.65rem);
 }
 
 .textarea-wrap {
@@ -212,8 +213,6 @@ textarea:focus ~ .placeholder-anim::after {
 }
 
 .ai-options {
-  border-top: 1px solid var(--border);
-  padding-top: 1.25rem;
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
 }
 
@@ -226,18 +225,7 @@ textarea:focus ~ .placeholder-anim::after {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-dim);
-  margin-bottom: 0.85rem;
-}
-
-.saved-badge {
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--accent);
-  background: rgba(232, 168, 56, 0.1);
-  padding: 0.15rem 0.5rem;
-  border-radius: 99px;
-  opacity: 0.85;
+  margin-bottom: clamp(0.4rem, 1vh, 0.65rem);
 }
 
 .radio-group {
@@ -251,7 +239,7 @@ textarea:focus ~ .placeholder-anim::after {
   align-items: center;
   gap: 0.35rem;
   cursor: pointer;
-  padding: 0.4rem 0.5rem;
+  padding: 0.55rem 0.65rem;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
@@ -360,6 +348,7 @@ textarea:focus ~ .placeholder-anim::after {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  margin-top: 0.25rem;
   padding: 0.85rem 1.15rem;
   background: var(--surface-hover);
   color: var(--text-dim);
@@ -536,8 +525,6 @@ textarea:focus ~ .placeholder-anim::after {
 footer {
   text-align: center;
   margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--border);
   color: var(--text-dim);
   font-size: 0.8rem;
   animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
@@ -562,6 +549,10 @@ footer a:hover {
   border-color: var(--border);
   background: var(--surface);
   transform: none;
+}
+
+.radio-group.collapsed .radio-option:has(input:checked) .radio-logo {
+  color: var(--text-dim);
 }
 
 /* Staggered result entrance (first reveal only, JS adds .animate-entrance) */
