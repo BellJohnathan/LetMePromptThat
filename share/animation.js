@@ -93,6 +93,103 @@
   document.getElementById('btn-grok').href = urls.k;
   document.getElementById('btn-lechat').href = urls.l;
 
+  // ── Drag system (desktop only) ──
+  function makeDraggable(el, handle) {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    if (window.innerWidth <= 480) return;
+
+    handle = handle || el;
+    let isDragging = false;
+    let startX, startY, currentX = 0, currentY = 0;
+    const DEAD_ZONE = 5;
+    let pointerStartX, pointerStartY, dragActivated = false;
+
+    handle.addEventListener('pointerdown', onPointerDown);
+
+    function onPointerDown(e) {
+      if (e.button !== 0) return; // left click only
+      // Bail if clicking interactive children (for button containers)
+      if (handle === el && e.target.closest('a, button')) return;
+
+      pointerStartX = e.clientX;
+      pointerStartY = e.clientY;
+      startX = e.clientX - currentX;
+      startY = e.clientY - currentY;
+      dragActivated = false;
+
+      el.setPointerCapture(e.pointerId);
+      el.addEventListener('pointermove', onPointerMove);
+      el.addEventListener('pointerup', onPointerUp);
+    }
+
+    function onPointerMove(e) {
+      if (!dragActivated) {
+        const movedX = Math.abs(e.clientX - pointerStartX);
+        const movedY = Math.abs(e.clientY - pointerStartY);
+        if (movedX < DEAD_ZONE && movedY < DEAD_ZONE) return;
+        dragActivated = true;
+        isDragging = true;
+        el.classList.add('dragging');
+        document.body.classList.add('is-dragging');
+        el.style.willChange = 'transform';
+      }
+
+      let dx = e.clientX - startX;
+      let dy = e.clientY - startY;
+
+      // Viewport clamping: keep element fully within viewport
+      const rect = el.getBoundingClientRect();
+      const naturalLeft = rect.left - currentX;
+      const naturalTop = rect.top - currentY;
+      const minDx = -naturalLeft;
+      const maxDx = window.innerWidth - naturalLeft - rect.width;
+      const minDy = -naturalTop;
+      const maxDy = window.innerHeight - naturalTop - rect.height;
+      dx = Math.max(minDx, Math.min(maxDx, dx));
+      dy = Math.max(minDy, Math.min(maxDy, dy));
+
+      currentX = dx;
+      currentY = dy;
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+
+    function onPointerUp(e) {
+      el.releasePointerCapture(e.pointerId);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', onPointerUp);
+
+      if (isDragging) {
+        isDragging = false;
+        el.classList.remove('dragging');
+        document.body.classList.remove('is-dragging');
+        el.style.willChange = '';
+      }
+      dragActivated = false;
+    }
+
+    // Clamp on resize
+    function onResize() {
+      if (currentX === 0 && currentY === 0) return;
+      const rect = el.getBoundingClientRect();
+      const naturalLeft = rect.left - currentX;
+      const naturalTop = rect.top - currentY;
+      const minDx = -naturalLeft;
+      const maxDx = window.innerWidth - naturalLeft - rect.width;
+      const minDy = -naturalTop;
+      const maxDy = window.innerHeight - naturalTop - rect.height;
+      currentX = Math.max(minDx, Math.min(maxDx, currentX));
+      currentY = Math.max(minDy, Math.min(maxDy, currentY));
+      el.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
+    window.addEventListener('resize', onResize);
+  }
+
+  const chatContainer = document.querySelector('.chat-container');
+  const chatHeader = document.querySelector('.chat-header');
+  chatContainer.addEventListener('animationend', () => {
+    makeDraggable(chatContainer, chatHeader);
+  }, { once: true });
+
   // ── Phase 1: Typewriter in the input bar ──
   let charIndex = 0;
   const typingSpeed = 55; // ms per character
@@ -200,8 +297,17 @@
     });
   }
 
+  let aiButtonsDragInitialized = false;
+  let toastDragInitialized = false;
   function showButtons() {
     aiButtons.classList.remove('hidden');
+    if (!aiButtonsDragInitialized) {
+      aiButtonsDragInitialized = true;
+      // Wait for fadeInUp animation to complete
+      aiButtons.addEventListener('animationend', () => {
+        makeDraggable(aiButtons);
+      }, { once: true });
+    }
   }
 
   async function copyQuestion(msg) {
@@ -275,6 +381,14 @@
     }
 
     toast.classList.remove('hidden');
+
+    // Enable drag on redirect toast (desktop only, once)
+    if (options.type === 'redirect' && !toastDragInitialized) {
+      toastDragInitialized = true;
+      toast.addEventListener('animationend', () => {
+        makeDraggable(toast);
+      }, { once: true });
+    }
   }
 
   // Start the animation after a longer initial delay for anticipation
