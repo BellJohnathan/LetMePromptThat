@@ -21,7 +21,7 @@ Two static sites + shared encoding logic:
 │   └── cipher.js             # Canonical cipher module (source of truth)
 ├── LetMePromptThat/          # Creator site
 │   ├── index.html
-│   ├── app.js                # Link generation + rotating placeholder animation
+│   ├── app.js                # Link generation + rotating placeholder animation + avatar selector
 │   ├── styles.css
 │   ├── _headers              # Cloudflare Pages cache headers (no-cache for JS/CSS)
 │   ├── sitemap.xml           # Single-page sitemap for SEO
@@ -46,10 +46,11 @@ Two static sites + shared encoding logic:
 
 ## URL Format
 
-Share links: `lmpt.io/{slug}#{aiCode}{encoded}`
+Share links: `lmpt.io/{slug}#{aiCode}!{imageCode}{encoded}`
 
 - **slug**: 4-char base-36 hash of the query (cosmetic, ignored on decode)
 - **aiCode**: `p` (Perplexity), `g` (ChatGPT), `c` (Claude), `m` (Gemini), `k` (Grok), `l` (Le Chat), `x` (copy only)
+- **imageCode**: `0`, `1`, or `2` — selects which AI profile image to display on the share page. Preceded by `!` sentinel for unambiguous parsing. Legacy links without `!` default to `0`.
 - **encoded**: `~` prefix = ROT13/ROT5 substitution; no prefix = base64
 
 ## Deployment
