@@ -187,6 +187,8 @@
   const chatContainer = document.querySelector('.chat-container');
   const chatHeader = document.querySelector('.chat-header');
   chatContainer.addEventListener('animationend', () => {
+    // Clear animation so fill-mode doesn't override inline transform during drag
+    chatContainer.style.animation = 'none';
     makeDraggable(chatContainer, chatHeader);
   }, { once: true });
 
@@ -305,6 +307,7 @@
       aiButtonsDragInitialized = true;
       // Wait for fadeInUp animation to complete
       aiButtons.addEventListener('animationend', () => {
+        aiButtons.style.animation = 'none';
         makeDraggable(aiButtons);
       }, { once: true });
     }
@@ -385,8 +388,11 @@
     // Enable drag on redirect toast (desktop only, once)
     if (options.type === 'redirect' && !toastDragInitialized) {
       toastDragInitialized = true;
-      toast.addEventListener('animationend', () => {
-        makeDraggable(toast);
+      toast.addEventListener('animationend', (e) => {
+        if (e.target === toast) {
+          toast.style.animation = 'none';
+          makeDraggable(toast);
+        }
       }, { once: true });
     }
   }
