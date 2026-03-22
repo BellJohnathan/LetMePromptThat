@@ -631,6 +631,95 @@ footer a:hover {
   transform: rotate(180deg);
 }
 
+/* ── Personalise section ── */
+.personalise-section {
+  animation: entranceUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.36s both;
+}
+
+.personalise-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.personalise-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(232, 168, 56, 0.05);
+}
+
+.personalise-toggle .chevron-icon {
+  transition: transform 0.25s ease;
+  display: inline-flex;
+}
+
+.personalise-toggle.expanded .chevron-icon {
+  transform: rotate(180deg);
+}
+
+.personalise-panel.hidden { display: none; }
+
+.personalise-label {
+  display: block;
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+
+.avatar-selector {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.avatar-option {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+}
+
+.avatar-option:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-focus);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-option.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 16px var(--accent-glow);
+}
+
+.avatar-option svg {
+  width: 28px;
+  height: 28px;
+}
+
 @media (max-width: 480px) {
   body {
     padding: 1.25rem 0.75rem;
@@ -678,6 +767,12 @@ footer a:hover {
     width: 100%;
     font-size: 0.8rem;
     text-align: center;
+  }
+
+  .avatar-option {
+    width: 48px;
+    height: 48px;
+    min-height: 44px;
   }
 
   .btn-copy, .btn-preview {

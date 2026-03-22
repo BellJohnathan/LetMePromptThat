@@ -146,6 +146,71 @@
     <polyline points="20 6 9 17 4 12"/>
   </svg>`;
 
+  // ── Avatar selector ──
+  const AVATAR_SVGS = [
+    // Avatar 0: Robot face
+    `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="8" width="20" height="16" rx="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      <circle cx="10" cy="16" r="2" fill="currentColor"/>
+      <circle cx="18" cy="16" r="2" fill="currentColor"/>
+      <line x1="11" y1="21" x2="17" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="14" y1="4" x2="14" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="14" cy="3.5" r="1.5" fill="currentColor"/>
+    </svg>`,
+    // Avatar 1: Sparkle/star burst
+    `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3L15.8 11.2L24 14L15.8 16.8L14 25L12.2 16.8L4 14L12.2 11.2Z" fill="currentColor"/>
+      <circle cx="22" cy="6" r="1.5" fill="currentColor"/>
+      <circle cx="6" cy="22" r="1" fill="currentColor"/>
+      <circle cx="23" cy="21" r="1" fill="currentColor"/>
+    </svg>`,
+    // Avatar 2: Chat bubble with dots
+    `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 6C4 4.89543 4.89543 4 6 4H22C23.1046 4 24 4.89543 24 6V18C24 19.1046 23.1046 20 22 20H10L6 24V20H6C4.89543 20 4 19.1046 4 18V6Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      <circle cx="9.5" cy="12" r="1.5" fill="currentColor"/>
+      <circle cx="14" cy="12" r="1.5" fill="currentColor"/>
+      <circle cx="18.5" cy="12" r="1.5" fill="currentColor"/>
+    </svg>`
+  ];
+
+  const avatarSelector = document.getElementById('avatar-selector');
+  const personaliseToggle = document.getElementById('personalise-toggle');
+  const personalisePanel = document.getElementById('personalise-panel');
+  let selectedAvatar = Number(safeGet('lmpt-avatar')) || 0;
+
+  // Add chevron to toggle button
+  personaliseToggle.insertAdjacentHTML('beforeend', `<span class="chevron-icon">${CHEVRON_SVG}</span>`);
+
+  // Populate avatar options
+  AVATAR_SVGS.forEach((svg, i) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'avatar-option' + (i === selectedAvatar ? ' selected' : '');
+    btn.innerHTML = svg;
+    btn.setAttribute('aria-label', `Avatar ${i + 1}`);
+    btn.addEventListener('click', () => selectAvatar(i));
+    avatarSelector.appendChild(btn);
+  });
+
+  function selectAvatar(index) {
+    selectedAvatar = index;
+    safeSet('lmpt-avatar', String(index));
+    avatarSelector.querySelectorAll('.avatar-option').forEach((btn, i) => {
+      btn.classList.toggle('selected', i === index);
+    });
+    // Auto-regenerate if result visible
+    if (!resultEl.classList.contains('hidden')) {
+      generateLink();
+    }
+  }
+
+  // Toggle panel
+  personaliseToggle.addEventListener('click', () => {
+    const isHidden = personalisePanel.classList.contains('hidden');
+    personalisePanel.classList.toggle('hidden');
+    personaliseToggle.classList.toggle('expanded', isHidden);
+  });
+
   function getSelectedAI() {
     return document.querySelector('input[name="ai"]:checked').value;
   }
@@ -166,7 +231,7 @@
       createCollapseToggle();
     }
 
-    const url = buildShareURL(query, aiCode);
+    const url = buildShareURL(query, aiCode, selectedAvatar);
 
     resultUrlEl.textContent = url;
     if (resultEl.classList.contains('hidden')) {
