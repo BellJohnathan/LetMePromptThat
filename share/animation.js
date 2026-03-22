@@ -91,6 +91,14 @@
   document.getElementById('btn-grok').href = urls.k;
   document.getElementById('btn-lechat').href = urls.l;
 
+  // Highlight the primary AI button (the one chosen by the link creator)
+  const aiCodeToBtnId = {
+    p: 'btn-perplexity', g: 'btn-chatgpt', c: 'btn-claude',
+    x: 'btn-copy', m: 'btn-gemini', k: 'btn-grok', l: 'btn-lechat',
+  };
+  const primaryBtn = document.getElementById(aiCodeToBtnId[aiCode]);
+  if (primaryBtn) primaryBtn.classList.add('ai-btn-primary');
+
   // ── Phase 1: Typewriter in the input bar ──
   let charIndex = 0;
   const typingSpeed = 55; // ms per character
