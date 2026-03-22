@@ -232,6 +232,9 @@ textarea:focus ~ .placeholder-anim::after {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.65rem;
+  transition: grid-template-columns 400ms cubic-bezier(0.165, 0.84, 0.44, 1),
+              column-gap 400ms cubic-bezier(0.165, 0.84, 0.44, 1),
+              row-gap 400ms cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .radio-option {
@@ -541,18 +544,71 @@ footer a:hover {
   text-decoration: underline;
 }
 
-.radio-group.collapsed .radio-option { display: none; }
-.radio-group.collapsed .radio-option:has(input:checked) { display: flex; }
-.radio-group.collapsed { grid-template-columns: 1fr; }
+/* Collapsed grid: shrink non-selected columns to 0fr */
+.radio-group.collapsed {
+  grid-template-columns: 1fr 0fr 0fr;
+  column-gap: 0;
+  row-gap: 0;
+}
+.radio-group.collapsed .radio-option:not(:has(input:checked)) {
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  padding: 0;
+  border-width: 0;
+  min-width: 0;
+  height: 0;
+  pointer-events: none;
+}
 .radio-group.collapsed .radio-option:has(input:checked) {
   box-shadow: none;
   border-color: var(--border);
   background: var(--surface);
   transform: none;
+  cursor: pointer;
 }
-
 .radio-group.collapsed .radio-option:has(input:checked) .radio-logo {
   color: var(--text-dim);
+}
+
+/* During expand morph: prevent text wrap inflating row height */
+.radio-group.morphing-expand .radio-option:not(:has(input:checked)) {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  pointer-events: none;
+}
+/* During collapse morph: zero out size so grid tracks can shrink to 0 */
+.radio-group.morphing-collapse .radio-option:not(:has(input:checked)) {
+  overflow: hidden;
+  min-width: 0;
+  padding: 0;
+  border-width: 0;
+  height: 0;
+  pointer-events: none;
+}
+/* Fade-in transition for individual items during expand */
+.radio-option.morph-fade-in {
+  transition: opacity 200ms ease;
+}
+/* Fade-out transition for individual items during collapse */
+.radio-option.morph-fade-out {
+  transition: opacity 150ms ease;
+}
+
+.radio-option .wrench-icon {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.radio-group.collapsed .radio-option:has(input:checked):hover .wrench-icon {
+  opacity: 1;
 }
 
 /* Staggered result entrance (first reveal only, JS adds .animate-entrance) */
@@ -582,19 +638,10 @@ footer a:hover {
   to { opacity: 1; transform: scale(1); }
 }
 
-/* Staggered fade-in when expanding radio options */
-.radio-group:not(.collapsed) .radio-option {
-  animation: radioFadeIn 0.25s ease both;
-}
-.radio-group:not(.collapsed) .radio-option:nth-child(2) { animation-delay: 30ms; }
-.radio-group:not(.collapsed) .radio-option:nth-child(3) { animation-delay: 60ms; }
-.radio-group:not(.collapsed) .radio-option:nth-child(4) { animation-delay: 90ms; }
-.radio-group:not(.collapsed) .radio-option:nth-child(5) { animation-delay: 120ms; }
-.radio-group:not(.collapsed) .radio-option:nth-child(6) { animation-delay: 150ms; }
-
-@keyframes radioFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .radio-group { transition-duration: 0.01ms !important; }
+  .radio-option.morph-fade-in,
+  .radio-option.morph-fade-out { transition-duration: 0.01ms !important; }
 }
 
 .collapse-toggle {
