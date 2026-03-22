@@ -510,11 +510,9 @@ body::after {
   width: 100%;
   margin: 0.75rem auto 0;
   padding: 0 1rem;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 0.5rem;
-  justify-content: center;
-  animation: fadeInUp 0.4s ease;
 }
 
 .ai-buttons.hidden {
@@ -522,24 +520,69 @@ body::after {
 }
 
 .ai-btn {
-  padding: 0.55rem 1.1rem;
-  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
   cursor: pointer;
   text-decoration: none;
-  text-align: center;
-  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  text-align: left;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s ease;
+  animation: aiBtnFadeIn 0.25s ease both;
+}
+
+.ai-btn:nth-child(2) { animation-delay: 40ms; }
+.ai-btn:nth-child(3) { animation-delay: 80ms; }
+.ai-btn:nth-child(4) { animation-delay: 120ms; }
+.ai-btn:nth-child(5) { animation-delay: 160ms; }
+.ai-btn:nth-child(6) { animation-delay: 200ms; }
+.ai-btn:nth-child(7) { animation-delay: 240ms; }
+
+@keyframes aiBtnFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .ai-btn:hover {
-  border-color: var(--accent);
   background: var(--surface-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent);
+}
+
+.ai-btn:hover .ai-btn-logo {
   color: var(--accent);
+}
+
+.ai-btn-logo {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: color 0.25s;
+}
+
+.ai-btn-primary {
+  border-color: var(--accent);
+  background: var(--bg-subtle, #1a1614);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.ai-btn-primary .ai-btn-logo {
+  color: var(--accent);
+}
+
+.ai-btn-copy {
+  grid-column: 1 / -1;
+  justify-content: center;
+  background: var(--bg);
+  border-style: dashed;
+  color: var(--text-muted);
 }
 
 /* ── Toast ── */
@@ -567,17 +610,6 @@ body::after {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @keyframes fadeInDown {
@@ -650,15 +682,17 @@ body::after {
   }
 
   .ai-buttons {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    padding: 0 0.5rem;
   }
 
   .ai-btn {
-    padding: 0.7rem 1rem;
+    padding: 0.7rem 0.85rem;
     min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  }
+
+  .ai-btn-copy {
+    grid-column: auto;
   }
 
   .cancel-link {

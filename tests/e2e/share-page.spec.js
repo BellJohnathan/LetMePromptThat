@@ -173,6 +173,36 @@ test.describe('Share page (mobile viewport)', () => {
   });
 });
 
+test.describe('Share page branded AI buttons', () => {
+  test('AI buttons contain brand logos', async ({ page }) => {
+    const hash = buildHash('test question', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+    await expect(page.locator('#ai-buttons')).toBeVisible({ timeout: 30000 });
+
+    const logos = page.locator('.ai-btn-logo');
+    await expect(logos).toHaveCount(7);
+  });
+
+  test('primary button is highlighted for chosen AI', async ({ page }) => {
+    const hash = buildHash('test question', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+    await expect(page.locator('#ai-buttons')).toBeVisible({ timeout: 30000 });
+
+    await expect(page.locator('#btn-copy')).toHaveClass(/ai-btn-primary/);
+  });
+
+  test('primary button matches aiCode from URL', async ({ page }) => {
+    const hash = buildHash('test question', 'p');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Cancel redirect to reveal buttons
+    await page.locator('#cancel-redirect').click({ timeout: 30000 });
+    await expect(page.locator('#ai-buttons')).toBeVisible();
+
+    await expect(page.locator('#btn-perplexity')).toHaveClass(/ai-btn-primary/);
+  });
+});
+
 test.describe('Share page branded redirect icons', () => {
   test('redirect notice shows brand icon for Perplexity', async ({ page }) => {
     const hash = buildHash('test question', 'p');
