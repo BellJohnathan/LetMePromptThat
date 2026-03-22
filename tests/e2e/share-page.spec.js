@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 // Helper: build a hash from a query and aiCode using the same logic as cipher.js
-function buildHash(query, aiCode) {
+function buildHash(query, aiCode, imageCode = 0) {
   const rot13rot5 = (str) =>
     str.split('').map(ch => {
       const c = ch.charCodeAt(0);
@@ -11,7 +11,7 @@ function buildHash(query, aiCode) {
       return ch;
     }).join('');
   const encoded = '~' + encodeURIComponent(rot13rot5(query)).replace(/%20/g, '+');
-  return `#${aiCode}${encoded}`;
+  return `#${aiCode}!${imageCode}${encoded}`;
 }
 
 const SHARE_BASE = 'http://localhost:4173';
@@ -215,5 +215,57 @@ test.describe('Share page branded redirect icons', () => {
     await expect(redirectNotice).toBeVisible({ timeout: 30000 });
 
     await expect(redirectNotice).toHaveAttribute('data-ai', 'p');
+  });
+});
+
+test.describe('Share page custom avatar', () => {
+  test('displays custom avatar in message bubble', async ({ page }) => {
+    const hash = buildHash('test avatar', 'p', 1);
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Wait for AI message to appear
+    const aiMessage = page.locator('#ai-message');
+    await expect(aiMessage).toBeVisible({ timeout: 20000 });
+
+    // Message avatar should contain an SVG (the custom avatar)
+    const messageAvatar = page.locator('.message-avatar svg');
+    await expect(messageAvatar).toBeVisible();
+  });
+
+  test('displays custom avatar in chat header', async ({ page }) => {
+    const hash = buildHash('test avatar header', 'p', 1);
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Header avatar should have custom-avatar class
+    const headerAvatar = page.locator('.chat-header-avatar.custom-avatar');
+    await expect(headerAvatar).toBeVisible();
+
+    // Should contain an SVG
+    const svg = page.locator('.chat-header-avatar svg');
+    await expect(svg).toBeVisible();
+  });
+
+  test('old-format links show default avatar', async ({ page }) => {
+    // Old format: no ! sentinel (aiCode directly followed by encoded)
+    const rot13rot5 = (str) =>
+      str.split('').map(ch => {
+        const c = ch.charCodeAt(0);
+        if (c >= 65 && c <= 90) return String.fromCharCode(((c - 65 + 13) % 26) + 65);
+        if (c >= 97 && c <= 122) return String.fromCharCode(((c - 97 + 13) % 26) + 97);
+        if (c >= 48 && c <= 57) return String.fromCharCode(((c - 48 + 5) % 10) + 48);
+        return ch;
+      }).join('');
+    const encoded = '~' + encodeURIComponent(rot13rot5('old format test')).replace(/%20/g, '+');
+    const oldHash = '#p' + encoded; // No ! sentinel
+
+    await page.goto(`${SHARE_BASE}/test${oldHash}`);
+
+    // Should still load and show the animation
+    const typedText = page.locator('#typed-text');
+    await expect(typedText).toHaveText('old format test', { timeout: 15000 });
+
+    // Header avatar should have custom-avatar class (default avatar is still applied)
+    const headerAvatar = page.locator('.chat-header-avatar.custom-avatar');
+    await expect(headerAvatar).toBeVisible();
   });
 });

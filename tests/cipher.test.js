@@ -68,18 +68,18 @@ describe('buildShareURL', () => {
 
   it('produces correct format', () => {
     const url = buildShareURL('hello world', 'p');
-    assert.match(url, /^lmpt\.io\/[0-9a-z]{4}#p/);
+    assert.match(url, /^lmpt\.io\/[0-9a-z]{4}#p![012]/);
   });
 
   it('defaults aiCode to p', () => {
     const url = buildShareURL('test');
-    assert.ok(url.includes('#p'));
+    assert.ok(url.includes('#p!'));
   });
 
   it('uses specified aiCode', () => {
     for (const code of ['p', 'g', 'c', 'x', 'm', 'k', 'l']) {
       const url = buildShareURL('test', code);
-      assert.ok(url.includes(`#${code}`), `Expected aiCode ${code} in URL`);
+      assert.ok(url.includes('#' + code + '!'), `Expected aiCode ${code} in URL`);
     }
   });
 });
@@ -92,6 +92,7 @@ describe('parseShareURL', () => {
     const result = parseShareURL('/whatever', hash);
     assert.equal(result.query, query);
     assert.equal(result.aiCode, 'g');
+    assert.equal(result.imageCode, 0);
   });
 
   it('roundtrips all aiCodes', () => {
@@ -102,6 +103,7 @@ describe('parseShareURL', () => {
       const result = parseShareURL('/', hash);
       assert.equal(result.query, query);
       assert.equal(result.aiCode, code);
+      assert.equal(result.imageCode, 0);
     }
   });
 
@@ -109,12 +111,14 @@ describe('parseShareURL', () => {
     const result = parseShareURL('/', '');
     assert.equal(result.query, null);
     assert.equal(result.aiCode, 'p');
+    assert.equal(result.imageCode, 0);
   });
 
   it('returns null query for hash with no content', () => {
     const result = parseShareURL('/', '#');
     assert.equal(result.query, null);
     assert.equal(result.aiCode, 'p');
+    assert.equal(result.imageCode, 0);
   });
 
   it('defaults aiCode to p when hash has no recognized prefix', () => {
@@ -133,5 +137,44 @@ describe('parseShareURL', () => {
     // Should not throw, returns null on decode failure
     assert.equal(result.query, null);
     assert.equal(result.aiCode, 'p');
+  });
+});
+
+describe('imageCode in buildShareURL and parseShareURL', () => {
+  it('buildShareURL includes imageCode with ! sentinel', () => {
+    const url = buildShareURL('test query', 'c', 1);
+    // Should contain #c!1
+    assert.ok(url.includes('#c!1'));
+  });
+
+  it('buildShareURL defaults imageCode to 0', () => {
+    const url = buildShareURL('test query', 'p');
+    assert.ok(url.includes('#p!0'));
+  });
+
+  it('roundtrips all imageCode values', () => {
+    for (const imageCode of [0, 1, 2]) {
+      const query = 'test query for image ' + imageCode;
+      const url = buildShareURL(query, 'c', imageCode);
+      const hash = '#' + url.split('#')[1];
+      const result = parseShareURL('/', hash);
+      assert.equal(result.query, query);
+      assert.equal(result.aiCode, 'c');
+      assert.equal(result.imageCode, imageCode);
+    }
+  });
+
+  it('old-format URLs (no ! sentinel) default imageCode to 0', () => {
+    // Manually construct an old-format hash (no ! separator)
+    const result = parseShareURL('/', '#p~uryyb');
+    assert.equal(result.imageCode, 0);
+    assert.equal(result.aiCode, 'p');
+    // 'uryyb' is ROT13 of 'hello'
+    assert.equal(result.query, 'hello');
+  });
+
+  it('throws RangeError for invalid imageCode', () => {
+    assert.throws(() => buildShareURL('test', 'p', 3), RangeError);
+    assert.throws(() => buildShareURL('test', 'p', -1), RangeError);
   });
 });

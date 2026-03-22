@@ -430,3 +430,91 @@ test.describe('Creator page mobile subtitles', () => {
     expect(opacity).toBe('0');
   });
 });
+
+test.describe('Creator page Personalise section', () => {
+  test('personalise toggle shows and hides panel', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Panel should start hidden
+    const panel = page.locator('#personalise-panel');
+    await expect(panel).toBeHidden();
+
+    // Click toggle to expand
+    await page.click('#personalise-toggle');
+    await expect(panel).toBeVisible();
+
+    // Click again to collapse
+    await page.click('#personalise-toggle');
+    await expect(panel).toBeHidden();
+  });
+
+  test('avatar selector shows 3 options', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    await page.click('#personalise-toggle');
+
+    const avatars = page.locator('.avatar-option');
+    await expect(avatars).toHaveCount(3);
+  });
+
+  test('clicking avatar updates selection', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    await page.click('#personalise-toggle');
+
+    // First avatar should be selected by default
+    const firstAvatar = page.locator('.avatar-option').nth(0);
+    await expect(firstAvatar).toHaveClass(/selected/);
+
+    // Click second avatar
+    const secondAvatar = page.locator('.avatar-option').nth(1);
+    await secondAvatar.click();
+
+    await expect(secondAvatar).toHaveClass(/selected/);
+    await expect(firstAvatar).not.toHaveClass(/selected/);
+  });
+
+  test('generated link includes imageCode', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    await page.click('#personalise-toggle');
+
+    // Select avatar 1
+    await page.locator('.avatar-option').nth(1).click();
+
+    await page.fill('#question', 'test avatar');
+    await page.click('#generate');
+
+    const url = await page.locator('#result-url').textContent();
+    // URL should contain !1 for imageCode 1
+    expect(url).toMatch(/!1/);
+  });
+
+  test('avatar choice persists across reload', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    await page.click('#personalise-toggle');
+
+    // Select avatar 2
+    await page.locator('.avatar-option').nth(2).click();
+
+    await page.reload();
+    await page.click('#personalise-toggle');
+
+    // Third avatar should be selected
+    const thirdAvatar = page.locator('.avatar-option').nth(2);
+    await expect(thirdAvatar).toHaveClass(/selected/);
+  });
+
+  test('changing avatar auto-regenerates link', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+    await page.fill('#question', 'test auto regen avatar');
+    await page.click('#generate');
+
+    const resultUrl = page.locator('#result-url');
+    const initialUrl = await resultUrl.textContent();
+
+    // Open personalise panel and change avatar
+    await page.click('#personalise-toggle');
+    await page.locator('.avatar-option').nth(1).click();
+
+    const updatedUrl = await resultUrl.textContent();
+    expect(updatedUrl).not.toEqual(initialUrl);
+  });
+});
