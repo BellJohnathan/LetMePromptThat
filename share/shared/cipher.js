@@ -5,7 +5,8 @@
  * Base64 is used when non-ASCII makes percent-encoding too long.
  * Prefix '~' marks substitution; no prefix means base64 (backward-compatible).
  *
- * URL format: lmpt.io/{4-char-hash}#{aiCode}{imageCode}{encoded-query}
+ * URL format: lmpt.io/{4-char-hash}#{aiCode}!{imageCode}{encoded-query}
+ * Legacy format (pre-imageCode): lmpt.io/{4-char-hash}#{aiCode}{encoded-query}
  */
 
 // --- Substitution helpers (ROT13 letters, ROT5 digits) ---
@@ -70,18 +71,19 @@ function slugHash(query) {
  * @returns {string} The full lmpt.io URL
  */
 function buildShareURL(query, aiCode = 'p', imageCode = 0) {
+  if (![0, 1, 2].includes(imageCode)) throw new RangeError(`imageCode must be 0, 1, or 2; got ${imageCode}`);
   const trimmed = query.trim();
   if (!trimmed) return '';
   const slug = slugHash(trimmed);
   const encoded = encodeQuery(trimmed);
-  return `lmpt.io/${slug}#${aiCode}${imageCode}${encoded}`;
+  return `lmpt.io/${slug}#${aiCode}!${imageCode}${encoded}`;
 }
 
 /**
  * Parse a share URL path + hash into { query, aiCode, imageCode }.
- * Backward-compatible: old links without imageCode return imageCode 0.
+ * Backward-compatible: old links without the `!` separator return imageCode 0.
  * @param {string} _pathname - ignored (slug is cosmetic)
- * @param {string} hash - e.g. "#p0~uryyb+jbeyq" or "#p1aG93K3RvK2NlbnRlcg"
+ * @param {string} hash - e.g. "#c!1~uryyb+jbeyq" (new) or "#c~uryyb+jbeyq" (legacy)
  * @returns {{ query: string|null, aiCode: string, imageCode: number }}
  */
 function parseShareURL(_pathname, hash) {
@@ -91,20 +93,17 @@ function parseShareURL(_pathname, hash) {
   const aiCode = /^[pgcxmkl]/.test(fragment) ? fragment[0] : 'p';
   const rest = /^[pgcxmkl]/.test(fragment) ? fragment.slice(1) : fragment;
 
-  // Try new format: imageCode digit followed by encoded query
-  if (/^[012]/.test(rest)) {
-    const candidateImageCode = Number(rest[0]);
-    const candidateEncoded = rest.slice(1);
-    try {
-      return { query: decodeQuery(candidateEncoded), aiCode, imageCode: candidateImageCode };
-    } catch {
-      // Fall through to old format
-    }
+  let imageCode = 0;
+  let encoded = rest;
+
+  // New format: `!` sentinel followed by imageCode digit
+  if (/^![012]/.test(rest)) {
+    imageCode = Number(rest[1]);
+    encoded = rest.slice(2);
   }
 
-  // Old format (no imageCode) or fallback
   try {
-    return { query: decodeQuery(rest), aiCode, imageCode: 0 };
+    return { query: decodeQuery(encoded), aiCode, imageCode };
   } catch {
     return { query: null, aiCode, imageCode: 0 };
   }
