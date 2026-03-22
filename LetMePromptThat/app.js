@@ -67,8 +67,18 @@
 
   const radioGroup = document.querySelector('.radio-group');
   const aiLabel = document.querySelector('.ai-options-label');
+  const containerEl = document.querySelector('.container');
   let collapseToggle = null;
   let isAnimating = false;
+
+  // Lock the body's vertical alignment so expand/collapse doesn't
+  // shift content above the radio group. Convert from flex centering
+  // to fixed padding-top after first paint.
+  requestAnimationFrame(() => {
+    const rect = containerEl.getBoundingClientRect();
+    document.body.style.alignItems = 'flex-start';
+    document.body.style.paddingTop = rect.top + 'px';
+  });
 
   async function expandRadioGroup() {
     if (!radioGroup.classList.contains('collapsed') || isAnimating) return;
@@ -84,10 +94,10 @@
 
     const last = checkedOption.getBoundingClientRect();
 
-    await flipAnimate(checkedOption, first, last);
+    await flipAnimate(checkedOption, first, last, 500);
 
     nonChecked.forEach((opt, i) => {
-      opt.style.animationDelay = `${100 + i * 30}ms`;
+      opt.style.animationDelay = `${150 + i * 40}ms`;
       opt.classList.add('fade-entering');
       opt.addEventListener('animationend', () => {
         opt.classList.remove('fade-entering');
@@ -118,7 +128,7 @@
         const done = () => { if (!resolved) { resolved = true; opt.classList.remove('fade-exiting'); resolve(); } };
         opt.classList.add('fade-exiting');
         opt.addEventListener('animationend', done, { once: true });
-        setTimeout(done, 200);
+        setTimeout(done, 300);
       });
     });
 
@@ -128,7 +138,7 @@
 
     const last = checkedOption.getBoundingClientRect();
 
-    await flipAnimate(checkedOption, first, last);
+    await flipAnimate(checkedOption, first, last, 500);
 
     collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
     collapseToggle.classList.remove('expanded');
