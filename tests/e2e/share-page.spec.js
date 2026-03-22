@@ -196,6 +196,36 @@ test.describe('Share page (mobile viewport)', () => {
   });
 });
 
+test.describe('Share page branded AI buttons', () => {
+  test('AI buttons contain brand logos', async ({ page }) => {
+    const hash = buildHash('test question', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+    await expect(page.locator('#ai-buttons')).toBeVisible({ timeout: 30000 });
+
+    const logos = page.locator('.ai-btn-logo');
+    await expect(logos).toHaveCount(7);
+  });
+
+  test('primary button is highlighted for chosen AI', async ({ page }) => {
+    const hash = buildHash('test question', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+    await expect(page.locator('#ai-buttons')).toBeVisible({ timeout: 30000 });
+
+    await expect(page.locator('#btn-copy')).toHaveClass(/ai-btn-primary/);
+  });
+
+  test('primary button matches aiCode from URL', async ({ page }) => {
+    const hash = buildHash('test question', 'p');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Cancel redirect to reveal buttons
+    await page.locator('#toast-cancel').click({ timeout: 30000 });
+    await expect(page.locator('#ai-buttons')).toBeVisible();
+
+    await expect(page.locator('#btn-perplexity')).toHaveClass(/ai-btn-primary/);
+  });
+});
+
 test.describe('Share page redirect toast', () => {
   test('redirect toast shows brand icon for Perplexity', async ({ page }) => {
     const hash = buildHash('test question', 'p');
@@ -298,12 +328,13 @@ test.describe('Share page draggable elements (desktop)', () => {
     await page.waitForTimeout(500);
 
     const box = await aiButtons.boundingBox();
-    const startX = box.x + box.width / 2;
-    const startY = box.y + box.height / 2;
+    // Start from top-left padding area (not on a button, which would bail out)
+    const startX = box.x + 5;
+    const startY = box.y + 5;
 
     await page.mouse.move(startX, startY);
     await page.mouse.down();
-    await page.mouse.move(startX + 80, startY - 40, { steps: 10 });
+    await page.mouse.move(startX + 80, startY + 40, { steps: 10 });
     await page.mouse.up();
 
     const newBox = await aiButtons.boundingBox();
