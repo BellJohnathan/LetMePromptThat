@@ -1,70 +1,41 @@
 (() => {
   const CHEVRON_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
 
-  // Animate an element from one bounding rect to another by temporarily
-  // pulling it out of flow with position:fixed and animating actual
-  // width/top/left — no scale distortion, true box morph.
-  function morphAnimate(element, from, to, duration = 600) {
+  function flipAnimate(element, first, last, duration = 350) {
+    const dx = first.left - last.left;
+    const dy = first.top - last.top;
+    const sw = first.width / last.width;
+    const sh = first.height / last.height;
+
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sw - 1) < 0.01) {
+      return Promise.resolve();
+    }
+
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return Promise.resolve();
     }
 
-    const noMove = Math.abs(from.left - to.left) < 1
-      && Math.abs(from.top - to.top) < 1
-      && Math.abs(from.width - to.width) < 1;
-    if (noMove) return Promise.resolve();
+    element.style.transformOrigin = 'top left';
+    element.style.transform = `translate(${dx}px, ${dy}px) scale(${sw}, ${sh})`;
+    element.offsetHeight; // force reflow
 
-    // Pull element out of flow at its current visual position
-    const origStyles = {
-      position: element.style.position,
-      left: element.style.left,
-      top: element.style.top,
-      width: element.style.width,
-      height: element.style.height,
-      zIndex: element.style.zIndex,
-      margin: element.style.margin,
-      gridColumn: element.style.gridColumn,
-    };
+    element.classList.add('morphing');
+    element.style.transform = '';
 
-    element.style.position = 'fixed';
-    element.style.left = from.left + 'px';
-    element.style.top = from.top + 'px';
-    element.style.width = from.width + 'px';
-    element.style.height = from.height + 'px';
-    element.style.zIndex = '20';
-    element.style.margin = '0';
-
-    // Use Web Animations API for smooth width/position morph
-    const animation = element.animate([
-      {
-        left: from.left + 'px',
-        top: from.top + 'px',
-        width: from.width + 'px',
-        height: from.height + 'px',
-      },
-      {
-        left: to.left + 'px',
-        top: to.top + 'px',
-        width: to.width + 'px',
-        height: to.height + 'px',
-      }
-    ], {
-      duration,
-      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-      fill: 'forwards',
-    });
-
-    return animation.finished.then(() => {
-      // Restore element to normal flow at its destination
-      animation.cancel();
-      element.style.position = origStyles.position;
-      element.style.left = origStyles.left;
-      element.style.top = origStyles.top;
-      element.style.width = origStyles.width;
-      element.style.height = origStyles.height;
-      element.style.zIndex = origStyles.zIndex;
-      element.style.margin = origStyles.margin;
-      element.style.gridColumn = origStyles.gridColumn;
+    return new Promise(resolve => {
+      element.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName === 'transform') {
+          element.removeEventListener('transitionend', handler);
+          element.classList.remove('morphing');
+          element.style.transformOrigin = '';
+          resolve();
+        }
+      });
+      setTimeout(() => {
+        element.classList.remove('morphing');
+        element.style.transformOrigin = '';
+        resolve();
+      }, duration + 50);
     });
   }
 
@@ -116,28 +87,23 @@
     const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
     const first = checkedOption.getBoundingClientRect();
 
-    // Switch to 3-column grid
     radioGroup.classList.remove('collapsed');
 
     const allOptions = radioGroup.querySelectorAll('.radio-option');
     const nonChecked = [...allOptions].filter(o => !o.querySelector('input:checked'));
+
     const last = checkedOption.getBoundingClientRect();
 
-    // Morph the selected option from full-width to its grid cell
-    // while fading in the other options with a stagger
-    const morphPromise = morphAnimate(checkedOption, first, last, 600);
+    await flipAnimate(checkedOption, first, last, 500);
 
-    // Start fading in other options partway through the morph
     nonChecked.forEach((opt, i) => {
-      opt.style.animationDelay = `${200 + i * 50}ms`;
+      opt.style.animationDelay = `${150 + i * 40}ms`;
       opt.classList.add('fade-entering');
       opt.addEventListener('animationend', () => {
         opt.classList.remove('fade-entering');
         opt.style.animationDelay = '';
       }, { once: true });
     });
-
-    await morphPromise;
 
     collapseToggle.innerHTML = `View less ${CHEVRON_SVG}`;
     collapseToggle.classList.add('expanded');
@@ -153,7 +119,6 @@
     const allOptions = radioGroup.querySelectorAll('.radio-option');
     const nonChecked = [...allOptions].filter(o => !o.querySelector('input:checked'));
 
-    // Capture starting position in the 3-column grid
     const first = checkedOption.getBoundingClientRect();
 
     // Fade out non-selected options
@@ -169,12 +134,11 @@
 
     await Promise.all(fadeOutPromises);
 
-    // Switch to collapsed layout to get the destination rect
     radioGroup.classList.add('collapsed');
+
     const last = checkedOption.getBoundingClientRect();
 
-    // Morph the selected option from its grid cell to full-width
-    await morphAnimate(checkedOption, first, last, 600);
+    await flipAnimate(checkedOption, first, last, 500);
 
     collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
     collapseToggle.classList.remove('expanded');
