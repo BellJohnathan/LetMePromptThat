@@ -597,6 +597,58 @@ body::after {
   }
 }
 
+/* ── Drag affordance (desktop only) ── */
+@media (pointer: fine) {
+  .chat-header {
+    cursor: grab;
+  }
+
+  .chat-container:hover:not(.dragging) {
+    box-shadow:
+      0 14px 55px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .chat-container.dragging {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    opacity: 0.97;
+    z-index: 10;
+  }
+
+  .chat-container.dragging .chat-header {
+    cursor: grabbing;
+  }
+
+  .ai-buttons:not(.hidden) {
+    cursor: grab;
+  }
+
+  .ai-buttons:hover:not(.dragging):not(.hidden) {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .ai-buttons.dragging {
+    cursor: grabbing;
+    opacity: 0.97;
+    z-index: 10;
+  }
+
+  .toast:not(.hidden) {
+    cursor: grab;
+  }
+
+  .toast.dragging {
+    cursor: grabbing;
+    z-index: 110;
+  }
+}
+
+/* Prevent text selection during drag */
+.is-dragging,
+.is-dragging * {
+  user-select: none !important;
+}
+
 /* ── Mobile ── */
 @media (max-width: 480px) {
   body {
