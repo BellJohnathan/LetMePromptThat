@@ -1,6 +1,44 @@
 (() => {
   const CHEVRON_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
 
+  function flipAnimate(element, first, last, duration = 350) {
+    const dx = first.left - last.left;
+    const dy = first.top - last.top;
+    const sw = first.width / last.width;
+    const sh = first.height / last.height;
+
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sw - 1) < 0.01) {
+      return Promise.resolve();
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return Promise.resolve();
+    }
+
+    element.style.transformOrigin = 'top left';
+    element.style.transform = `translate(${dx}px, ${dy}px) scale(${sw}, ${sh})`;
+    element.offsetHeight; // force reflow
+
+    element.classList.add('morphing');
+    element.style.transform = '';
+
+    return new Promise(resolve => {
+      element.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName === 'transform') {
+          element.removeEventListener('transitionend', handler);
+          element.classList.remove('morphing');
+          element.style.transformOrigin = '';
+          resolve();
+        }
+      });
+      setTimeout(() => {
+        element.classList.remove('morphing');
+        element.style.transformOrigin = '';
+        resolve();
+      }, duration + 50);
+    });
+  }
+
   const questionEl = document.getElementById('question');
   const generateBtn = document.getElementById('generate');
   const resultEl = document.getElementById('result');
@@ -30,6 +68,75 @@
   const radioGroup = document.querySelector('.radio-group');
   const aiLabel = document.querySelector('.ai-options-label');
   let collapseToggle = null;
+  let isAnimating = false;
+
+  async function expandRadioGroup() {
+    if (!radioGroup.classList.contains('collapsed') || isAnimating) return;
+    isAnimating = true;
+
+    const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
+    const first = checkedOption.getBoundingClientRect();
+
+    radioGroup.classList.remove('collapsed');
+
+    const allOptions = radioGroup.querySelectorAll('.radio-option');
+    const nonChecked = [...allOptions].filter(o => !o.querySelector('input:checked'));
+
+    const last = checkedOption.getBoundingClientRect();
+
+    flipAnimate(checkedOption, first, last);
+
+    nonChecked.forEach((opt, i) => {
+      opt.style.animationDelay = `${100 + i * 30}ms`;
+      opt.classList.add('fade-entering');
+      opt.addEventListener('animationend', function handler() {
+        opt.classList.remove('fade-entering');
+        opt.style.animationDelay = '';
+        opt.removeEventListener('animationend', handler);
+      }, { once: true });
+    });
+
+    collapseToggle.innerHTML = `View less ${CHEVRON_SVG}`;
+    collapseToggle.classList.add('expanded');
+
+    setTimeout(() => { isAnimating = false; }, 400);
+  }
+
+  async function collapseRadioGroup() {
+    if (radioGroup.classList.contains('collapsed') || isAnimating) return;
+    isAnimating = true;
+
+    const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
+    const allOptions = radioGroup.querySelectorAll('.radio-option');
+    const nonChecked = [...allOptions].filter(o => !o.querySelector('input:checked'));
+
+    const first = checkedOption.getBoundingClientRect();
+
+    // Fade out non-selected options
+    const fadeOutPromises = nonChecked.map(opt => {
+      return new Promise(resolve => {
+        opt.classList.add('fade-exiting');
+        opt.addEventListener('animationend', function handler() {
+          opt.classList.remove('fade-exiting');
+          opt.removeEventListener('animationend', handler);
+          resolve();
+        }, { once: true });
+      });
+    });
+
+    await Promise.all(fadeOutPromises);
+
+    radioGroup.classList.add('collapsed');
+
+    const last = checkedOption.getBoundingClientRect();
+
+    flipAnimate(checkedOption, first, last);
+
+    collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+    collapseToggle.classList.remove('expanded');
+
+    setTimeout(() => { isAnimating = false; }, 400);
+  }
 
   function createCollapseToggle() {
     collapseToggle = document.createElement('button');
@@ -37,13 +144,9 @@
     collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
     collapseToggle.addEventListener('click', () => {
       if (radioGroup.classList.contains('collapsed')) {
-        radioGroup.classList.remove('collapsed');
-        collapseToggle.innerHTML = `View less ${CHEVRON_SVG}`;
-        collapseToggle.classList.add('expanded');
+        expandRadioGroup();
       } else {
-        radioGroup.classList.add('collapsed');
-        collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
-        collapseToggle.classList.remove('expanded');
+        collapseRadioGroup();
       }
     });
     aiLabel.appendChild(collapseToggle);
@@ -53,6 +156,15 @@
     radioGroup.classList.add('collapsed');
     createCollapseToggle();
   }
+
+  radioGroup.addEventListener('click', (e) => {
+    if (!radioGroup.classList.contains('collapsed')) return;
+    const clickedOption = e.target.closest('.radio-option');
+    if (clickedOption && clickedOption.querySelector('input:checked')) {
+      e.preventDefault();
+      expandRadioGroup();
+    }
+  });
 
   // ── Rotating placeholder animation ──
   const placeholders = [
@@ -241,9 +353,7 @@
       if (collapseToggle && !radioGroup.classList.contains('collapsed')) {
         clearTimeout(collapseTimer);
         collapseTimer = setTimeout(() => {
-          radioGroup.classList.add('collapsed');
-          collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
-          collapseToggle.classList.remove('expanded');
+          collapseRadioGroup();
         }, 200);
       }
     });
