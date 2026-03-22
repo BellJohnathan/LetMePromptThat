@@ -80,14 +80,6 @@
     </div>
   </div>
 
-  <div id="redirect-notice" class="redirect-notice hidden">
-    <div class="redirect-row">
-      <span id="redirect-icon" class="redirect-icon"></span>
-      <span id="redirect-text"></span>
-    </div>
-    <button id="cancel-redirect" class="cancel-link">Cancel</button>
-  </div>
-
   <div id="ai-buttons" class="ai-buttons hidden">
     <a id="btn-perplexity" class="ai-btn ai-btn-perplexity" target="_blank" rel="noopener">
       <svg class="ai-btn-logo" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -144,7 +136,16 @@
     </button>
   </div>
 
-  <div id="toast" class="toast hidden"></div>
+  <div id="toast" class="toast hidden">
+    <div class="toast-content">
+      <span id="toast-icon" class="toast-icon hidden"></span>
+      <span id="toast-text" class="toast-text"></span>
+      <button id="toast-cancel" class="toast-cancel hidden">Cancel</button>
+    </div>
+    <div id="toast-progress" class="toast-progress hidden">
+      <div id="toast-progress-bar" class="toast-progress-bar"></div>
+    </div>
+  </div>
 
   <script src="./shared/cipher.js"></script>
   <script src="animation.js"></script>

@@ -82,14 +82,13 @@ test.describe('Share page', () => {
     await expect(buttons).toBeVisible({ timeout: 30000 });
   });
 
-  test('aiCode p shows redirect notice', async ({ page }) => {
+  test('aiCode p shows redirect toast', async ({ page }) => {
     const hash = buildHash('test question', 'p');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    // Wait for the redirect notice to appear
-    const redirectNotice = page.locator('#redirect-notice');
-    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
-    await expect(redirectNotice).toContainText('Perplexity');
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
+    await expect(toast).toContainText('Perplexity');
   });
 
   test('aiCode m shows copy+open behavior for Gemini', async ({ page }) => {
@@ -101,36 +100,34 @@ test.describe('Share page', () => {
     await expect(aiButtons).toBeVisible({ timeout: 30000 });
   });
 
-  test('aiCode k shows redirect notice for Grok', async ({ page }) => {
+  test('aiCode k shows redirect toast for Grok', async ({ page }) => {
     const hash = buildHash('test question', 'k');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    const redirectNotice = page.locator('#redirect-notice');
-    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
-    await expect(redirectNotice).toContainText('Grok');
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
+    await expect(toast).toContainText('Grok');
   });
 
-  test('aiCode l shows redirect notice for Le Chat', async ({ page }) => {
+  test('aiCode l shows redirect toast for Le Chat', async ({ page }) => {
     const hash = buildHash('test question', 'l');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    const redirectNotice = page.locator('#redirect-notice');
-    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
-    await expect(redirectNotice).toContainText('Le Chat');
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
+    await expect(toast).toContainText('Le Chat');
   });
 
-  test('redirect notice shows cancel button', async ({ page }) => {
+  test('redirect toast shows cancel button', async ({ page }) => {
     const hash = buildHash('test question', 'g');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    const cancelBtn = page.locator('#cancel-redirect');
+    const cancelBtn = page.locator('#toast-cancel');
     await expect(cancelBtn).toBeVisible({ timeout: 30000 });
 
-    // Click cancel
     await cancelBtn.click();
 
-    // Redirect notice should hide, buttons should show
-    await expect(page.locator('#redirect-notice')).toBeHidden();
+    await expect(page.locator('#toast')).toBeHidden();
     await expect(page.locator('#ai-buttons')).toBeVisible();
   });
 
@@ -171,6 +168,32 @@ test.describe('Share page (mobile viewport)', () => {
     const box = await firstBtn.boundingBox();
     expect(box.height).toBeGreaterThanOrEqual(44);
   });
+
+  test('elements are not draggable on mobile', async ({ page }) => {
+    // Emulate coarse pointer (touch device) so the JS guard works correctly
+    await page.emulateMedia({ pointer: 'coarse' });
+
+    const hash = buildHash('mobile drag test', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Wait for entrance animation
+    await page.waitForTimeout(1500);
+
+    const chatContainer = page.locator('.chat-container');
+    const box = await chatContainer.boundingBox();
+
+    const startX = box.x + box.width / 2;
+    const startY = box.y + 15;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 100, startY + 50, { steps: 10 });
+    await page.mouse.up();
+
+    // Position should NOT have changed
+    const newBox = await chatContainer.boundingBox();
+    expect(Math.abs(newBox.x - box.x)).toBeLessThan(5);
+  });
 });
 
 test.describe('Share page branded AI buttons', () => {
@@ -196,54 +219,127 @@ test.describe('Share page branded AI buttons', () => {
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
     // Cancel redirect to reveal buttons
-    await page.locator('#cancel-redirect').click({ timeout: 30000 });
+    await page.locator('#toast-cancel').click({ timeout: 30000 });
     await expect(page.locator('#ai-buttons')).toBeVisible();
 
     await expect(page.locator('#btn-perplexity')).toHaveClass(/ai-btn-primary/);
   });
 });
 
-test.describe('Share page branded redirect icons', () => {
-  test('redirect notice shows brand icon for Perplexity', async ({ page }) => {
+test.describe('Share page redirect toast', () => {
+  test('redirect toast shows brand icon for Perplexity', async ({ page }) => {
     const hash = buildHash('test question', 'p');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    const redirectNotice = page.locator('#redirect-notice');
-    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
 
-    const icon = page.locator('#redirect-icon svg');
+    const icon = page.locator('#toast-icon svg');
     await expect(icon).toBeVisible();
   });
 
-  test('redirect notice shows brand icon for Grok', async ({ page }) => {
+  test('redirect toast shows brand icon for Grok', async ({ page }) => {
     const hash = buildHash('test question', 'k');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    const redirectNotice = page.locator('#redirect-notice');
-    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
 
-    const icon = page.locator('#redirect-icon svg');
+    const icon = page.locator('#toast-icon svg');
     await expect(icon).toBeVisible();
   });
 
-  test('redirect notice shows brand icon for ChatGPT', async ({ page }) => {
+  test('redirect toast shows brand icon for ChatGPT', async ({ page }) => {
     const hash = buildHash('test question', 'g');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    const redirectNotice = page.locator('#redirect-notice');
-    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
 
-    const icon = page.locator('#redirect-icon svg');
+    const icon = page.locator('#toast-icon svg');
     await expect(icon).toBeVisible();
   });
 
-  test('redirect notice has brand color applied', async ({ page }) => {
+  test('redirect toast has brand color applied', async ({ page }) => {
     const hash = buildHash('test question', 'p');
     await page.goto(`${SHARE_BASE}/test${hash}`);
 
-    const redirectNotice = page.locator('#redirect-notice');
-    await expect(redirectNotice).toBeVisible({ timeout: 30000 });
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
+    await expect(toast).toHaveAttribute('data-ai', 'p');
+  });
 
-    await expect(redirectNotice).toHaveAttribute('data-ai', 'p');
+  test('redirect toast shows progress bar', async ({ page }) => {
+    const hash = buildHash('test question', 'p');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
+
+    const progressBar = page.locator('#toast-progress-bar');
+    await expect(progressBar).toBeVisible();
+
+    const animation = await progressBar.evaluate(el =>
+      getComputedStyle(el).animationName
+    );
+    expect(animation).toBe('progressShrink');
+  });
+});
+
+test.describe('Share page draggable elements (desktop)', () => {
+  test('chat container is draggable via header', async ({ page }) => {
+    const hash = buildHash('drag test', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Wait for entrance animation + some buffer
+    await page.waitForTimeout(1500);
+
+    const chatContainer = page.locator('.chat-container');
+    const box = await chatContainer.boundingBox();
+
+    // Drag from header area
+    const startX = box.x + box.width / 2;
+    const startY = box.y + 15; // within header area
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 100, startY + 50, { steps: 10 });
+
+    // Should have dragging class during drag
+    await expect(chatContainer).toHaveClass(/dragging/);
+
+    await page.mouse.up();
+
+    // Position should have changed (may be clamped by viewport edge)
+    const newBox = await chatContainer.boundingBox();
+    const movedX = Math.abs(newBox.x - box.x);
+    const movedY = Math.abs(newBox.y - box.y);
+    expect(movedX + movedY).toBeGreaterThan(10);
+  });
+
+  test('ai buttons are draggable after appearing', async ({ page }) => {
+    const hash = buildHash('drag test', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const aiButtons = page.locator('#ai-buttons');
+    await expect(aiButtons).toBeVisible({ timeout: 30000 });
+
+    // Wait for fadeInUp animation
+    await page.waitForTimeout(500);
+
+    const box = await aiButtons.boundingBox();
+    // Start from top-left padding area (not on a button, which would bail out)
+    const startX = box.x + 5;
+    const startY = box.y + 5;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 80, startY + 40, { steps: 10 });
+    await page.mouse.up();
+
+    const newBox = await aiButtons.boundingBox();
+    const movedX = Math.abs(newBox.x - box.x);
+    const movedY = Math.abs(newBox.y - box.y);
+    expect(movedX + movedY).toBeGreaterThan(10);
   });
 });

@@ -24,11 +24,13 @@
   const snarkyMessage = document.getElementById('snarky-message');
   const snarkyTitle = document.getElementById('snarky-title');
   const snarkySubtitle = document.getElementById('snarky-subtitle');
-  const redirectNotice = document.getElementById('redirect-notice');
-  const redirectText = document.getElementById('redirect-text');
-  const cancelRedirect = document.getElementById('cancel-redirect');
   const aiButtons = document.getElementById('ai-buttons');
   const toast = document.getElementById('toast');
+  const toastIcon = document.getElementById('toast-icon');
+  const toastText = document.getElementById('toast-text');
+  const toastCancel = document.getElementById('toast-cancel');
+  const toastProgress = document.getElementById('toast-progress');
+  const toastProgressBar = document.getElementById('toast-progress-bar');
   const headerStatus = document.getElementById('header-status');
 
   // Punchline variations — randomly selected each page load
@@ -90,6 +92,105 @@
   });
   document.getElementById('btn-grok').href = urls.k;
   document.getElementById('btn-lechat').href = urls.l;
+
+  // ── Drag system (desktop only) ──
+  function makeDraggable(el, handle) {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    if (window.innerWidth <= 480) return;
+
+    handle = handle || el;
+    let isDragging = false;
+    let startX, startY, currentX = 0, currentY = 0;
+    const DEAD_ZONE = 5;
+    let pointerStartX, pointerStartY, dragActivated = false;
+
+    handle.addEventListener('pointerdown', onPointerDown);
+
+    function onPointerDown(e) {
+      if (e.button !== 0) return; // left click only
+      // Bail if clicking interactive children (for button containers)
+      if (handle === el && e.target.closest('a, button')) return;
+
+      pointerStartX = e.clientX;
+      pointerStartY = e.clientY;
+      startX = e.clientX - currentX;
+      startY = e.clientY - currentY;
+      dragActivated = false;
+
+      el.setPointerCapture(e.pointerId);
+      el.addEventListener('pointermove', onPointerMove);
+      el.addEventListener('pointerup', onPointerUp);
+    }
+
+    function onPointerMove(e) {
+      if (!dragActivated) {
+        const movedX = Math.abs(e.clientX - pointerStartX);
+        const movedY = Math.abs(e.clientY - pointerStartY);
+        if (movedX < DEAD_ZONE && movedY < DEAD_ZONE) return;
+        dragActivated = true;
+        isDragging = true;
+        el.classList.add('dragging');
+        document.body.classList.add('is-dragging');
+        el.style.willChange = 'transform';
+      }
+
+      let dx = e.clientX - startX;
+      let dy = e.clientY - startY;
+
+      // Viewport clamping: keep element fully within viewport
+      const rect = el.getBoundingClientRect();
+      const naturalLeft = rect.left - currentX;
+      const naturalTop = rect.top - currentY;
+      const minDx = -naturalLeft;
+      const maxDx = window.innerWidth - naturalLeft - rect.width;
+      const minDy = -naturalTop;
+      const maxDy = window.innerHeight - naturalTop - rect.height;
+      dx = Math.max(minDx, Math.min(maxDx, dx));
+      dy = Math.max(minDy, Math.min(maxDy, dy));
+
+      currentX = dx;
+      currentY = dy;
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+
+    function onPointerUp(e) {
+      el.releasePointerCapture(e.pointerId);
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerup', onPointerUp);
+
+      if (isDragging) {
+        isDragging = false;
+        el.classList.remove('dragging');
+        document.body.classList.remove('is-dragging');
+        el.style.willChange = '';
+      }
+      dragActivated = false;
+    }
+
+    // Clamp on resize
+    function onResize() {
+      if (currentX === 0 && currentY === 0) return;
+      const rect = el.getBoundingClientRect();
+      const naturalLeft = rect.left - currentX;
+      const naturalTop = rect.top - currentY;
+      const minDx = -naturalLeft;
+      const maxDx = window.innerWidth - naturalLeft - rect.width;
+      const minDy = -naturalTop;
+      const maxDy = window.innerHeight - naturalTop - rect.height;
+      currentX = Math.max(minDx, Math.min(maxDx, currentX));
+      currentY = Math.max(minDy, Math.min(maxDy, currentY));
+      el.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
+    window.addEventListener('resize', onResize);
+  }
+
+  const chatContainer = document.querySelector('.chat-container');
+  const chatHeader = document.querySelector('.chat-header');
+  chatContainer.addEventListener('animationend', () => {
+    // Clear animation so fill-mode doesn't override inline transform during drag
+    chatContainer.style.animation = 'none';
+    makeDraggable(chatContainer, chatHeader);
+  }, { once: true });
 
   // Highlight the primary AI button (the one chosen by the link creator)
   const aiCodeToBtnId = {
@@ -176,7 +277,7 @@
     }, 2400);
   }
 
-  let redirectTimer = null;
+  let toastTimer = null;
 
   function doRedirect() {
     if (aiCode === 'x') {
@@ -192,30 +293,32 @@
       return;
     }
 
-    // Perplexity or ChatGPT: auto-redirect with cancel option
+    // Auto-redirect AIs: show redirect toast with progress bar
     const name = aiNames[aiCode] || 'Perplexity';
-    redirectText.textContent = `Redirecting to ${name}...`;
-    redirectNotice.dataset.ai = aiCode;
-    // Set brand icon
-    const iconEl = document.getElementById('redirect-icon');
-    if (aiIcons[aiCode]) {
-      iconEl.innerHTML = aiIcons[aiCode];
-    }
-    redirectNotice.classList.remove('hidden');
-
-    redirectTimer = setTimeout(() => {
-      window.location.href = urls[aiCode] || urls.p;
-    }, 2000);
-
-    cancelRedirect.addEventListener('click', () => {
-      clearTimeout(redirectTimer);
-      redirectNotice.classList.add('hidden');
-      showButtons();
+    showToast(`Redirecting to ${name}...`, {
+      type: 'redirect',
+      aiCode: aiCode,
+      onComplete: () => {
+        window.location.href = urls[aiCode] || urls.p;
+      },
+      onCancel: () => {
+        showButtons();
+      },
     });
   }
 
+  let aiButtonsDragInitialized = false;
+  let toastDragInitialized = false;
   function showButtons() {
     aiButtons.classList.remove('hidden');
+    if (!aiButtonsDragInitialized) {
+      aiButtonsDragInitialized = true;
+      // Wait for fadeInUp animation to complete
+      aiButtons.addEventListener('animationend', () => {
+        aiButtons.style.animation = 'none';
+        makeDraggable(aiButtons);
+      }, { once: true });
+    }
   }
 
   async function copyQuestion(msg) {
@@ -243,10 +346,63 @@
     showButtons();
   }
 
-  function showToast(msg) {
-    toast.textContent = msg;
+  function showToast(msg, options = {}) {
+    // Clear any previous toast state
+    clearTimeout(toastTimer);
+    toastTimer = null;
+
+    // Reset toast elements
+    toast.className = 'toast';
+    toastProgressBar.style.animationPlayState = '';
+    toastIcon.classList.add('hidden');
+    toastCancel.classList.add('hidden');
+    toastProgress.classList.add('hidden');
+    delete toast.dataset.ai;
+    toast.style.transform = '';
+
+    if (options.type === 'redirect') {
+      toast.dataset.ai = options.aiCode;
+      toastIcon.innerHTML = aiIcons[options.aiCode] || '';
+      toastIcon.classList.remove('hidden');
+      toastText.textContent = msg;
+      toastCancel.classList.remove('hidden');
+      toastProgress.classList.remove('hidden');
+
+      // Reset and start progress bar animation
+      toastProgressBar.style.animation = 'none';
+      void toastProgressBar.offsetHeight; // force reflow to restart animation
+      toastProgressBar.style.animation = '';
+
+      // Redirect when progress bar animation completes (synced with CSS 3s)
+      const onProgressEnd = () => {
+        if (options.onComplete) options.onComplete();
+      };
+      toastProgressBar.addEventListener('animationend', onProgressEnd, { once: true });
+
+      // Cancel handler (property assignment — no stacking)
+      toastCancel.onclick = () => {
+        toastProgressBar.removeEventListener('animationend', onProgressEnd);
+        toastProgressBar.style.animationPlayState = 'paused';
+        toast.classList.add('hidden');
+        if (options.onCancel) options.onCancel();
+      };
+    } else {
+      toastText.textContent = msg;
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
     toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 4000);
+
+    // Enable drag on redirect toast (desktop only, once)
+    if (options.type === 'redirect' && !toastDragInitialized) {
+      toastDragInitialized = true;
+      toast.addEventListener('animationend', (e) => {
+        if (e.target === toast) {
+          toast.style.animation = 'none';
+          makeDraggable(toast);
+        }
+      }, { once: true });
+    }
   }
 
   // Start the animation after a longer initial delay for anticipation
