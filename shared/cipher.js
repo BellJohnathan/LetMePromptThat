@@ -5,7 +5,7 @@
  * Base64 is used when non-ASCII makes percent-encoding too long.
  * Prefix '~' marks substitution; no prefix means base64 (backward-compatible).
  *
- * URL format: lmpt.io/{4-char-hash}#{aiCode}{encoded-query}
+ * URL format: lmpt.io/{4-char-hash}#{aiCode}{imageCode}{encoded-query}
  */
 
 // --- Substitution helpers (ROT13 letters, ROT5 digits) ---
@@ -66,33 +66,47 @@ function slugHash(query) {
  * Build a full share URL.
  * @param {string} query - The question text
  * @param {string} aiCode - One of 'p', 'g', 'c', 'x', 'm', 'k', 'l'
+ * @param {number} imageCode - Avatar image index (0, 1, or 2)
  * @returns {string} The full lmpt.io URL
  */
-function buildShareURL(query, aiCode = 'p') {
+function buildShareURL(query, aiCode = 'p', imageCode = 0) {
   const trimmed = query.trim();
   if (!trimmed) return '';
   const slug = slugHash(trimmed);
   const encoded = encodeQuery(trimmed);
-  return `lmpt.io/${slug}#${aiCode}${encoded}`;
+  return `lmpt.io/${slug}#${aiCode}${imageCode}${encoded}`;
 }
 
 /**
- * Parse a share URL path + hash into { query, aiCode }.
+ * Parse a share URL path + hash into { query, aiCode, imageCode }.
+ * Backward-compatible: old links without imageCode return imageCode 0.
  * @param {string} _pathname - ignored (slug is cosmetic)
- * @param {string} hash - e.g. "#p~uryyb+jbeyq" or "#paG93K3RvK2NlbnRlcg"
- * @returns {{ query: string|null, aiCode: string }}
+ * @param {string} hash - e.g. "#p0~uryyb+jbeyq" or "#p1aG93K3RvK2NlbnRlcg"
+ * @returns {{ query: string|null, aiCode: string, imageCode: number }}
  */
 function parseShareURL(_pathname, hash) {
   const fragment = hash ? hash.replace(/^#/, '') : '';
-  if (!fragment) return { query: null, aiCode: 'p' };
+  if (!fragment) return { query: null, aiCode: 'p', imageCode: 0 };
 
   const aiCode = /^[pgcxmkl]/.test(fragment) ? fragment[0] : 'p';
-  const encoded = /^[pgcxmkl]/.test(fragment) ? fragment.slice(1) : fragment;
+  const rest = /^[pgcxmkl]/.test(fragment) ? fragment.slice(1) : fragment;
 
+  // Try new format: imageCode digit followed by encoded query
+  if (/^[012]/.test(rest)) {
+    const candidateImageCode = Number(rest[0]);
+    const candidateEncoded = rest.slice(1);
+    try {
+      return { query: decodeQuery(candidateEncoded), aiCode, imageCode: candidateImageCode };
+    } catch {
+      // Fall through to old format
+    }
+  }
+
+  // Old format (no imageCode) or fallback
   try {
-    return { query: decodeQuery(encoded), aiCode };
+    return { query: decodeQuery(rest), aiCode, imageCode: 0 };
   } catch {
-    return { query: null, aiCode };
+    return { query: null, aiCode, imageCode: 0 };
   }
 }
 
