@@ -1,41 +1,30 @@
 (() => {
   const CHEVRON_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`;
 
-  function flipAnimate(element, first, last, duration = 350) {
-    const dx = first.left - last.left;
-    const dy = first.top - last.top;
-    const sw = first.width / last.width;
-    const sh = first.height / last.height;
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
-    if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sw - 1) < 0.01) {
-      return Promise.resolve();
-    }
+  function getCollapsedColumns(checkedOption) {
+    const allOptions = [...radioGroup.querySelectorAll('.radio-option')];
+    const index = allOptions.indexOf(checkedOption);
+    const col = index % 3; // 0, 1, or 2
+    const cols = ['0fr', '0fr', '0fr'];
+    cols[col] = '1fr';
+    return cols.join(' ');
+  }
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return Promise.resolve();
-    }
-
-    element.style.transformOrigin = 'top left';
-    element.style.transform = `translate(${dx}px, ${dy}px) scale(${sw}, ${sh})`;
-    element.offsetHeight; // force reflow
-
-    element.classList.add('morphing');
-    element.style.transform = '';
-
+  function waitForTransitionEnd(element, property, timeout) {
     return new Promise(resolve => {
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; resolve(); } };
       element.addEventListener('transitionend', function handler(e) {
-        if (e.propertyName === 'transform') {
+        if (e.propertyName === property) {
           element.removeEventListener('transitionend', handler);
-          element.classList.remove('morphing');
-          element.style.transformOrigin = '';
-          resolve();
+          done();
         }
       });
-      setTimeout(() => {
-        element.classList.remove('morphing');
-        element.style.transformOrigin = '';
-        resolve();
-      }, duration + 50);
+      setTimeout(done, timeout);
     });
   }
 
@@ -84,30 +73,58 @@
     if (!radioGroup.classList.contains('collapsed') || isAnimating) return;
     isAnimating = true;
 
-    const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
-    const first = checkedOption.getBoundingClientRect();
-
-    radioGroup.classList.remove('collapsed');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      radioGroup.classList.remove('collapsed');
+      collapseToggle.innerHTML = `View less ${CHEVRON_SVG}`;
+      collapseToggle.classList.add('expanded');
+      isAnimating = false;
+      return;
+    }
 
     const allOptions = radioGroup.querySelectorAll('.radio-option');
     const nonChecked = [...allOptions].filter(o => !o.querySelector('input:checked'));
 
-    const last = checkedOption.getBoundingClientRect();
+    // 1. Prepare non-selected items: keep them in flow but invisible
+    nonChecked.forEach(opt => {
+      opt.style.opacity = '0';
+    });
 
-    await flipAnimate(checkedOption, first, last, 500);
+    // 2. Remove collapsed class — grid transitions to 1fr 1fr 1fr
+    //    Set inline grid-template-columns to the collapsed position first,
+    //    then remove collapsed class to let it transition to the expanded state.
+    const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
+    radioGroup.style.gridTemplateColumns = getCollapsedColumns(checkedOption);
+    radioGroup.style.columnGap = '0px';
+    radioGroup.style.rowGap = '0px';
+    radioGroup.classList.remove('collapsed');
+    radioGroup.classList.add('morphing-expand');
+    radioGroup.offsetHeight; // force reflow
+    radioGroup.style.gridTemplateColumns = ''; // transition to CSS default (1fr 1fr 1fr)
+    radioGroup.style.columnGap = '';
+    radioGroup.style.rowGap = '';
 
-    nonChecked.forEach((opt, i) => {
-      opt.style.animationDelay = `${150 + i * 40}ms`;
-      opt.classList.add('fade-entering');
-      opt.addEventListener('animationend', () => {
-        opt.classList.remove('fade-entering');
-        opt.style.animationDelay = '';
-      }, { once: true });
+    // 3. Stagger fade-in non-selected items after grid is ~60% through
+    setTimeout(() => {
+      nonChecked.forEach((opt, i) => {
+        opt.classList.add('morph-fade-in');
+        opt.style.transitionDelay = `${i * 40}ms`;
+        opt.style.opacity = '1';
+      });
+    }, 240);
+
+    // 4. Wait for grid transition to finish
+    await waitForTransitionEnd(radioGroup, 'grid-template-columns', 450);
+
+    // 5. Clean up
+    radioGroup.classList.remove('morphing-expand');
+    nonChecked.forEach(opt => {
+      opt.classList.remove('morph-fade-in');
+      opt.style.transitionDelay = '';
+      opt.style.opacity = '';
     });
 
     collapseToggle.innerHTML = `View less ${CHEVRON_SVG}`;
     collapseToggle.classList.add('expanded');
-
     isAnimating = false;
   }
 
@@ -115,34 +132,54 @@
     if (radioGroup.classList.contains('collapsed') || isAnimating) return;
     isAnimating = true;
 
-    const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      radioGroup.classList.add('collapsed');
+      collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
+      collapseToggle.classList.remove('expanded');
+      isAnimating = false;
+      return;
+    }
+
     const allOptions = radioGroup.querySelectorAll('.radio-option');
     const nonChecked = [...allOptions].filter(o => !o.querySelector('input:checked'));
 
-    const first = checkedOption.getBoundingClientRect();
-
-    // Fade out non-selected options
-    const fadeOutPromises = nonChecked.map(opt => {
-      return new Promise(resolve => {
-        let resolved = false;
-        const done = () => { if (!resolved) { resolved = true; opt.classList.remove('fade-exiting'); resolve(); } };
-        opt.classList.add('fade-exiting');
-        opt.addEventListener('animationend', done, { once: true });
-        setTimeout(done, 300);
-      });
+    // 1. Fade out non-selected items
+    nonChecked.forEach(opt => {
+      opt.classList.add('morph-fade-out');
+      opt.style.opacity = '0';
     });
 
-    await Promise.all(fadeOutPromises);
+    await delay(150);
 
+    // 2. Clean up fade classes, keep items in flow but hidden
+    nonChecked.forEach(opt => {
+      opt.classList.remove('morph-fade-out');
+    });
+
+    // 3. Transition grid from 1fr 1fr 1fr → collapsed columns
+    const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
+    const collapsedCols = getCollapsedColumns(checkedOption);
+    radioGroup.classList.add('morphing-collapse');
+    radioGroup.style.gridTemplateColumns = collapsedCols;
+    radioGroup.style.columnGap = '0px';
+    radioGroup.style.rowGap = '0px';
+    radioGroup.offsetHeight; // force reflow
+
+    // 4. Wait for grid transition to finish
+    await waitForTransitionEnd(radioGroup, 'grid-template-columns', 450);
+
+    // 5. Apply collapsed class and clean up inline styles
     radioGroup.classList.add('collapsed');
-
-    const last = checkedOption.getBoundingClientRect();
-
-    await flipAnimate(checkedOption, first, last, 500);
+    radioGroup.classList.remove('morphing-collapse');
+    radioGroup.style.gridTemplateColumns = getCollapsedColumns(checkedOption);
+    radioGroup.style.columnGap = '';
+    radioGroup.style.rowGap = '';
+    nonChecked.forEach(opt => {
+      opt.style.opacity = '';
+    });
 
     collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
     collapseToggle.classList.remove('expanded');
-
     isAnimating = false;
   }
 
@@ -162,6 +199,11 @@
 
   if (savedAI) {
     radioGroup.classList.add('collapsed');
+    // Set correct collapsed columns based on which option is selected
+    const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
+    if (checkedOption) {
+      radioGroup.style.gridTemplateColumns = getCollapsedColumns(checkedOption);
+    }
     createCollapseToggle();
   }
 
@@ -283,6 +325,10 @@
     // Collapse picker and create toggle on first generate
     if (!collapseToggle) {
       radioGroup.classList.add('collapsed');
+      const checkedOption = radioGroup.querySelector('.radio-option:has(input:checked)');
+      if (checkedOption) {
+        radioGroup.style.gridTemplateColumns = getCollapsedColumns(checkedOption);
+      }
       createCollapseToggle();
     }
 

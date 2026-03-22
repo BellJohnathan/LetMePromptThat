@@ -33,8 +33,11 @@ test.describe('Creator page', () => {
         await expect(page.locator('.radio-option:visible')).toHaveCount(6, { timeout: 2000 });
       }
       await page.check(`input[name="ai"][value="${code}"]`);
-      // Wait for auto-collapse to finish before next iteration
-      await expect(page.locator('.radio-option:visible')).toHaveCount(1, { timeout: 1500 });
+      // Wait for auto-collapse to finish (if toggle exists) before generating
+      const hasToggle = await page.locator('.collapse-toggle').isVisible();
+      if (hasToggle) {
+        await expect(page.locator('.radio-group')).toHaveClass(/collapsed/, { timeout: 2000 });
+      }
       await page.click('#generate');
 
       const url = await page.locator('#result-url').textContent();
@@ -253,14 +256,15 @@ test.describe('Creator page localStorage persistence', () => {
 
     await page.reload();
 
-    // Expand
+    // Expand and wait for animation to complete
     await page.click('.collapse-toggle');
+    await expect(page.locator('.radio-group')).not.toHaveClass(/collapsed|morphing/, { timeout: 2000 });
     const expandedCount = await page.locator('.radio-option:visible').count();
     expect(expandedCount).toBeGreaterThanOrEqual(6);
 
     // Re-collapse
     await page.click('.collapse-toggle');
-    await expect(page.locator('.radio-option:visible')).toHaveCount(1, { timeout: 1500 });
+    await expect(page.locator('.radio-group')).toHaveClass(/collapsed/, { timeout: 2000 });
   });
 
   test('auto-collapses when selecting a different AI', async ({ page }) => {
