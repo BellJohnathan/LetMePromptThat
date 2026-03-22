@@ -553,6 +553,7 @@ footer a:hover {
   border-color: var(--border);
   background: var(--surface);
   transform: none;
+  cursor: pointer;
 }
 .radio-group.collapsed .radio-option:has(input:checked) .radio-logo {
   color: var(--text-dim);

@@ -84,22 +84,21 @@
 
     const last = checkedOption.getBoundingClientRect();
 
-    flipAnimate(checkedOption, first, last);
+    await flipAnimate(checkedOption, first, last);
 
     nonChecked.forEach((opt, i) => {
       opt.style.animationDelay = `${100 + i * 30}ms`;
       opt.classList.add('fade-entering');
-      opt.addEventListener('animationend', function handler() {
+      opt.addEventListener('animationend', () => {
         opt.classList.remove('fade-entering');
         opt.style.animationDelay = '';
-        opt.removeEventListener('animationend', handler);
       }, { once: true });
     });
 
     collapseToggle.innerHTML = `View less ${CHEVRON_SVG}`;
     collapseToggle.classList.add('expanded');
 
-    setTimeout(() => { isAnimating = false; }, 400);
+    isAnimating = false;
   }
 
   async function collapseRadioGroup() {
@@ -115,12 +114,11 @@
     // Fade out non-selected options
     const fadeOutPromises = nonChecked.map(opt => {
       return new Promise(resolve => {
+        let resolved = false;
+        const done = () => { if (!resolved) { resolved = true; opt.classList.remove('fade-exiting'); resolve(); } };
         opt.classList.add('fade-exiting');
-        opt.addEventListener('animationend', function handler() {
-          opt.classList.remove('fade-exiting');
-          opt.removeEventListener('animationend', handler);
-          resolve();
-        }, { once: true });
+        opt.addEventListener('animationend', done, { once: true });
+        setTimeout(done, 200);
       });
     });
 
@@ -130,12 +128,12 @@
 
     const last = checkedOption.getBoundingClientRect();
 
-    flipAnimate(checkedOption, first, last);
+    await flipAnimate(checkedOption, first, last);
 
     collapseToggle.innerHTML = `Change ${CHEVRON_SVG}`;
     collapseToggle.classList.remove('expanded');
 
-    setTimeout(() => { isAnimating = false; }, 400);
+    isAnimating = false;
   }
 
   function createCollapseToggle() {
