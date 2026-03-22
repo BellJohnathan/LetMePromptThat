@@ -24,11 +24,13 @@
   const snarkyMessage = document.getElementById('snarky-message');
   const snarkyTitle = document.getElementById('snarky-title');
   const snarkySubtitle = document.getElementById('snarky-subtitle');
-  const redirectNotice = document.getElementById('redirect-notice');
-  const redirectText = document.getElementById('redirect-text');
-  const cancelRedirect = document.getElementById('cancel-redirect');
   const aiButtons = document.getElementById('ai-buttons');
   const toast = document.getElementById('toast');
+  const toastIcon = document.getElementById('toast-icon');
+  const toastText = document.getElementById('toast-text');
+  const toastCancel = document.getElementById('toast-cancel');
+  const toastProgress = document.getElementById('toast-progress');
+  const toastProgressBar = document.getElementById('toast-progress-bar');
   const headerStatus = document.getElementById('header-status');
 
   // Punchline variations — randomly selected each page load
@@ -168,7 +170,7 @@
     }, 2400);
   }
 
-  let redirectTimer = null;
+  let toastTimer = null;
 
   function doRedirect() {
     if (aiCode === 'x') {
@@ -184,25 +186,17 @@
       return;
     }
 
-    // Perplexity or ChatGPT: auto-redirect with cancel option
+    // Auto-redirect AIs: show redirect toast with progress bar
     const name = aiNames[aiCode] || 'Perplexity';
-    redirectText.textContent = `Redirecting to ${name}...`;
-    redirectNotice.dataset.ai = aiCode;
-    // Set brand icon
-    const iconEl = document.getElementById('redirect-icon');
-    if (aiIcons[aiCode]) {
-      iconEl.innerHTML = aiIcons[aiCode];
-    }
-    redirectNotice.classList.remove('hidden');
-
-    redirectTimer = setTimeout(() => {
-      window.location.href = urls[aiCode] || urls.p;
-    }, 2000);
-
-    cancelRedirect.addEventListener('click', () => {
-      clearTimeout(redirectTimer);
-      redirectNotice.classList.add('hidden');
-      showButtons();
+    showToast(`Redirecting to ${name}...`, {
+      type: 'redirect',
+      aiCode: aiCode,
+      onComplete: () => {
+        window.location.href = urls[aiCode] || urls.p;
+      },
+      onCancel: () => {
+        showButtons();
+      },
     });
   }
 
@@ -235,10 +229,52 @@
     showButtons();
   }
 
-  function showToast(msg) {
-    toast.textContent = msg;
+  function showToast(msg, options = {}) {
+    // Clear any previous toast state
+    clearTimeout(toastTimer);
+    toastTimer = null;
+
+    // Reset toast elements
+    toast.className = 'toast';
+    toastProgressBar.style.animationPlayState = '';
+    toastIcon.classList.add('hidden');
+    toastCancel.classList.add('hidden');
+    toastProgress.classList.add('hidden');
+    delete toast.dataset.ai;
+    toast.style.transform = '';
+
+    if (options.type === 'redirect') {
+      toast.dataset.ai = options.aiCode;
+      toastIcon.innerHTML = aiIcons[options.aiCode] || '';
+      toastIcon.classList.remove('hidden');
+      toastText.textContent = msg;
+      toastCancel.classList.remove('hidden');
+      toastProgress.classList.remove('hidden');
+
+      // Reset and start progress bar animation
+      toastProgressBar.style.animation = 'none';
+      void toastProgressBar.offsetHeight; // force reflow to restart animation
+      toastProgressBar.style.animation = '';
+
+      // Redirect when progress bar animation completes (synced with CSS 3s)
+      const onProgressEnd = () => {
+        if (options.onComplete) options.onComplete();
+      };
+      toastProgressBar.addEventListener('animationend', onProgressEnd, { once: true });
+
+      // Cancel handler (property assignment — no stacking)
+      toastCancel.onclick = () => {
+        toastProgressBar.removeEventListener('animationend', onProgressEnd);
+        toastProgressBar.style.animationPlayState = 'paused';
+        toast.classList.add('hidden');
+        if (options.onCancel) options.onCancel();
+      };
+    } else {
+      toastText.textContent = msg;
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
     toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 4000);
   }
 
   // Start the animation after a longer initial delay for anticipation
