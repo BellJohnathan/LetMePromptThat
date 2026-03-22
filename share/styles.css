@@ -702,3 +702,8 @@ body::after {
     display: none;
   }
 }
+
+.chat-header-avatar.custom-avatar {
+  background: linear-gradient(135deg, var(--accent-glow), rgba(232, 168, 56, 0.08));
+  border: 1px solid rgba(232, 168, 56, 0.2);
+}
