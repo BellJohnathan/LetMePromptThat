@@ -168,6 +168,32 @@ test.describe('Share page (mobile viewport)', () => {
     const box = await firstBtn.boundingBox();
     expect(box.height).toBeGreaterThanOrEqual(44);
   });
+
+  test('elements are not draggable on mobile', async ({ page }) => {
+    // Emulate coarse pointer (touch device) so the JS guard works correctly
+    await page.emulateMedia({ pointer: 'coarse' });
+
+    const hash = buildHash('mobile drag test', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Wait for entrance animation
+    await page.waitForTimeout(1500);
+
+    const chatContainer = page.locator('.chat-container');
+    const box = await chatContainer.boundingBox();
+
+    const startX = box.x + box.width / 2;
+    const startY = box.y + 15;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 100, startY + 50, { steps: 10 });
+    await page.mouse.up();
+
+    // Position should NOT have changed
+    const newBox = await chatContainer.boundingBox();
+    expect(Math.abs(newBox.x - box.x)).toBeLessThan(5);
+  });
 });
 
 test.describe('Share page redirect toast', () => {
@@ -211,5 +237,75 @@ test.describe('Share page redirect toast', () => {
     const toast = page.locator('#toast');
     await expect(toast).toBeVisible({ timeout: 30000 });
     await expect(toast).toHaveAttribute('data-ai', 'p');
+  });
+
+  test('redirect toast shows progress bar', async ({ page }) => {
+    const hash = buildHash('test question', 'p');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const toast = page.locator('#toast');
+    await expect(toast).toBeVisible({ timeout: 30000 });
+
+    const progressBar = page.locator('#toast-progress-bar');
+    await expect(progressBar).toBeVisible();
+
+    const animation = await progressBar.evaluate(el =>
+      getComputedStyle(el).animationName
+    );
+    expect(animation).toBe('progressShrink');
+  });
+});
+
+test.describe('Share page draggable elements (desktop)', () => {
+  test('chat container is draggable via header', async ({ page }) => {
+    const hash = buildHash('drag test', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    // Wait for entrance animation + some buffer
+    await page.waitForTimeout(1500);
+
+    const chatContainer = page.locator('.chat-container');
+    const box = await chatContainer.boundingBox();
+
+    // Drag from header area
+    const startX = box.x + box.width / 2;
+    const startY = box.y + 15; // within header area
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 100, startY + 50, { steps: 10 });
+
+    // Should have dragging class during drag
+    await expect(chatContainer).toHaveClass(/dragging/);
+
+    await page.mouse.up();
+
+    // Position should have changed
+    const newBox = await chatContainer.boundingBox();
+    expect(newBox.x).toBeGreaterThan(box.x + 50);
+    expect(newBox.y).toBeGreaterThan(box.y + 20);
+  });
+
+  test('ai buttons are draggable after appearing', async ({ page }) => {
+    const hash = buildHash('drag test', 'x');
+    await page.goto(`${SHARE_BASE}/test${hash}`);
+
+    const aiButtons = page.locator('#ai-buttons');
+    await expect(aiButtons).toBeVisible({ timeout: 30000 });
+
+    // Wait for fadeInUp animation
+    await page.waitForTimeout(500);
+
+    const box = await aiButtons.boundingBox();
+    const startX = box.x + box.width / 2;
+    const startY = box.y + box.height / 2;
+
+    await page.mouse.move(startX, startY);
+    await page.mouse.down();
+    await page.mouse.move(startX + 80, startY - 40, { steps: 10 });
+    await page.mouse.up();
+
+    const newBox = await aiButtons.boundingBox();
+    expect(newBox.x).toBeGreaterThan(box.x + 40);
   });
 });
