@@ -34,7 +34,7 @@ test.describe('Creator page', () => {
       }
       await page.check(`input[name="ai"][value="${code}"]`);
       // Wait for auto-collapse to finish before next iteration
-      await page.waitForTimeout(600);
+      await expect(page.locator('.radio-option:visible')).toHaveCount(1, { timeout: 1500 });
       await page.click('#generate');
 
       const url = await page.locator('#result-url').textContent();
@@ -260,9 +260,7 @@ test.describe('Creator page localStorage persistence', () => {
 
     // Re-collapse
     await page.click('.collapse-toggle');
-    await page.waitForTimeout(600);
-    const collapsedCount = await page.locator('.radio-option:visible').count();
-    expect(collapsedCount).toBe(1);
+    await expect(page.locator('.radio-option:visible')).toHaveCount(1, { timeout: 1500 });
   });
 
   test('auto-collapses when selecting a different AI', async ({ page }) => {
@@ -283,9 +281,7 @@ test.describe('Creator page localStorage persistence', () => {
     await page.check('input[name="ai"][value="c"]');
 
     // Wait for auto-collapse (200ms delay)
-    await page.waitForTimeout(800);
-    const collapsedCount = await page.locator('.radio-option:visible').count();
-    expect(collapsedCount).toBe(1);
+    await expect(page.locator('.radio-option:visible')).toHaveCount(1, { timeout: 1500 });
   });
 
   test('clicking collapsed radio button expands all options', async ({ page }) => {
@@ -303,14 +299,10 @@ test.describe('Creator page localStorage persistence', () => {
     expect(collapsedCount).toBe(1);
 
     // Click the collapsed radio button itself (not the Change toggle)
-    await page.click('.radio-group.collapsed .radio-option');
-
-    // Wait for expand animation
-    await page.waitForTimeout(600);
+    await page.click('.radio-group.collapsed .radio-option:has(input:checked)');
 
     // All options should be visible
-    const expandedCount = await page.locator('.radio-option:visible').count();
-    expect(expandedCount).toBeGreaterThanOrEqual(6);
+    await expect(page.locator('.radio-option:visible')).toHaveCount(6, { timeout: 1500 });
   });
 
   test('wrench icon appears on hover in collapsed state', async ({ page }) => {
@@ -334,9 +326,7 @@ test.describe('Creator page localStorage persistence', () => {
     await page.hover('.radio-group.collapsed .radio-option:has(input:checked)');
 
     // Wrench icon should become visible
-    await page.waitForTimeout(300);
-    const hoverOpacity = await wrenchIcon.evaluate((el) => getComputedStyle(el).opacity);
-    expect(hoverOpacity).toBe('1');
+    await expect(wrenchIcon).toHaveCSS('opacity', '1', { timeout: 1000 });
   });
 
   test('first visit shows all options (no localStorage)', async ({ page, context }) => {
