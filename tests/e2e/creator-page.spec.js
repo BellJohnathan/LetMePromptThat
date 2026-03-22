@@ -34,7 +34,7 @@ test.describe('Creator page', () => {
       }
       await page.check(`input[name="ai"][value="${code}"]`);
       // Wait for auto-collapse to finish before next iteration
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(600);
       await page.click('#generate');
 
       const url = await page.locator('#result-url').textContent();
@@ -260,6 +260,7 @@ test.describe('Creator page localStorage persistence', () => {
 
     // Re-collapse
     await page.click('.collapse-toggle');
+    await page.waitForTimeout(600);
     const collapsedCount = await page.locator('.radio-option:visible').count();
     expect(collapsedCount).toBe(1);
   });
@@ -282,9 +283,60 @@ test.describe('Creator page localStorage persistence', () => {
     await page.check('input[name="ai"][value="c"]');
 
     // Wait for auto-collapse (200ms delay)
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(800);
     const collapsedCount = await page.locator('.radio-option:visible').count();
     expect(collapsedCount).toBe(1);
+  });
+
+  test('clicking collapsed radio button expands all options', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Select ChatGPT and generate to save preference
+    await page.check('input[name="ai"][value="g"]');
+    await page.fill('#question', 'test');
+    await page.click('#generate');
+
+    await page.reload();
+
+    // Verify collapsed state
+    const collapsedCount = await page.locator('.radio-option:visible').count();
+    expect(collapsedCount).toBe(1);
+
+    // Click the collapsed radio button itself (not the Change toggle)
+    await page.click('.radio-group.collapsed .radio-option');
+
+    // Wait for expand animation
+    await page.waitForTimeout(600);
+
+    // All options should be visible
+    const expandedCount = await page.locator('.radio-option:visible').count();
+    expect(expandedCount).toBeGreaterThanOrEqual(6);
+  });
+
+  test('wrench icon appears on hover in collapsed state', async ({ page }) => {
+    await page.goto(CREATOR_BASE);
+
+    // Select and generate to create collapsed state
+    await page.check('input[name="ai"][value="g"]');
+    await page.fill('#question', 'test');
+    await page.click('#generate');
+
+    await page.reload();
+
+    // Verify the wrench icon exists but is hidden
+    const wrenchIcon = page.locator('.radio-group.collapsed .radio-option:has(input:checked) .wrench-icon');
+    await expect(wrenchIcon).toHaveCount(1);
+
+    const opacity = await wrenchIcon.evaluate((el) => getComputedStyle(el).opacity);
+    expect(opacity).toBe('0');
+
+    // Hover over the collapsed radio option
+    await page.hover('.radio-group.collapsed .radio-option:has(input:checked)');
+
+    // Wrench icon should become visible
+    await page.waitForTimeout(300);
+    const hoverOpacity = await wrenchIcon.evaluate((el) => getComputedStyle(el).opacity);
+    expect(hoverOpacity).toBe('1');
   });
 
   test('first visit shows all options (no localStorage)', async ({ page, context }) => {
