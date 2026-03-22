@@ -176,7 +176,8 @@
   const avatarSelector = document.getElementById('avatar-selector');
   const personaliseToggle = document.getElementById('personalise-toggle');
   const personalisePanel = document.getElementById('personalise-panel');
-  let selectedAvatar = Number(safeGet('lmpt-avatar')) || 0;
+  const savedAvatarStr = safeGet('lmpt-avatar');
+  let selectedAvatar = savedAvatarStr !== null ? Number(savedAvatarStr) : 0;
 
   // Add chevron to toggle button
   personaliseToggle.insertAdjacentHTML('beforeend', `<span class="chevron-icon">${CHEVRON_SVG}</span>`);

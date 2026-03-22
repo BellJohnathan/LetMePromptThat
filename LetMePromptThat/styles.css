@@ -669,7 +669,16 @@ footer a:hover {
   transform: rotate(180deg);
 }
 
+.personalise-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
 .personalise-panel.hidden { display: none; }
+
+.personalise-panel {
+  padding-top: 0.75rem;
+}
 
 .personalise-label {
   display: block;
@@ -708,6 +717,11 @@ footer a:hover {
   transform: translateY(-2px);
   border-color: var(--border-focus);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.avatar-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-subtle);
 }
 
 .avatar-option.selected {
